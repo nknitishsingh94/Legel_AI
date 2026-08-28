@@ -3,11 +3,21 @@ import {
   MoreVertical, Search, Edit, Folder, FileText, 
   Files, FilePlus, ChevronDown, Plus, Sparkles, User, LayoutDashboard, Settings, Trash2, MessageSquare
 } from 'lucide-react';
+import { supabase } from '../supabase';
 import './AppSidebar.css';
 
 const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelectChat, onDeleteChat, onNewChat, user }) => {
   const [openCases, setOpenCases] = useState(true);
   const [openChats, setOpenChats] = useState(true);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const handleUpgrade = () => {
+    alert("Plan upgrade feature coming soon!");
+  };
 
   return (
     <aside className="ai-lawyer-sidebar">
@@ -122,7 +132,7 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
           <span style={{ fontSize: '14px', fontWeight: '500' }}>Settings</span>
         </button>
 
-        <div className="sidebar-user-profile">
+        <div className="sidebar-user-profile" style={{ position: 'relative' }}>
           <div className="user-avatar-circle">
             <User size={18} />
           </div>
@@ -134,7 +144,20 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
               {user?.app_metadata?.plan || 'Free plan'}
             </span>
           </div>
-          <button className="icon-btn"><MoreVertical size={16} /></button>
+          <button className="icon-btn" onClick={() => setUserMenuOpen(!userMenuOpen)}>
+            <MoreVertical size={16} />
+          </button>
+
+          {userMenuOpen && (
+            <div className="user-dropdown-menu">
+              <button onClick={handleUpgrade} className="dropdown-item upgrade">
+                Upgrade Plan
+              </button>
+              <button onClick={handleLogout} className="dropdown-item logout">
+                Log Out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </aside>
