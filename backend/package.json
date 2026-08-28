@@ -12,8 +12,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@langchain/core": "^1.2.9",
     "@langchain/openai": "^1.5.10",
-    "chromadb": "^3.5.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
