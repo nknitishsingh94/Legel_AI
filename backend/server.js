@@ -244,8 +244,13 @@ app.get('/api/dashboard/live-stats', (req, res) => {
 });
 
 // ---- Start Server ----
-app.listen(PORT, () => {
-  console.log(`\n  🚀 Wakalat AI Backend (Node.js) running at:`);
-  console.log(`  ➜  Local:   http://localhost:${PORT}/`);
-  console.log(`  ➜  API:     http://localhost:${PORT}/api\n`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`\n  🚀 Wakalat AI Backend (Node.js) running at:`);
+    console.log(`  ➜  Local:   http://localhost:${PORT}/`);
+    console.log(`  ➜  API:     http://localhost:${PORT}/api\n`);
+  });
+}
+
+// Export the Express API for Vercel Serverless Functions
+module.exports = app;
