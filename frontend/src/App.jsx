@@ -37,15 +37,18 @@ function App() {
         if (session) {
           setUser(session.user);
           setIsLoggedIn(true);
+          setView('app');
         }
 
         supabase.auth.onAuthStateChange((_event, session) => {
           if (session) {
             setUser(session.user);
             setIsLoggedIn(true);
+            setView('app');
           } else {
             setUser(null);
             setIsLoggedIn(false);
+            setView('landing');
             setChats([]); // Clear chats on logout
           }
         });
