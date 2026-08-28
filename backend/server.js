@@ -5,7 +5,11 @@ const app = express();
 const PORT = 8000;
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+const allowedOrigins = ['http://localhost:5173', 'https://legel-ai.vercel.app'];
+app.use(cors({ 
+  origin: allowedOrigins,
+  credentials: true 
+}));
 app.use(express.json());
 
 // ---- Root ----
