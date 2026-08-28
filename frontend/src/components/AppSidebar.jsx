@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import './AppSidebar.css';
 
-const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelectChat, onDeleteChat, onNewChat }) => {
+const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelectChat, onDeleteChat, onNewChat, user }) => {
   const [openCases, setOpenCases] = useState(true);
   const [openChats, setOpenChats] = useState(true);
 
@@ -127,8 +127,12 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
             <User size={18} />
           </div>
           <div className="user-details">
-            <span className="user-name">Nitish singh Nk</span>
-            <span className="user-plan">Free plan</span>
+            <span className="user-name">
+              {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Advocate'}
+            </span>
+            <span className="user-plan">
+              {user?.app_metadata?.plan || 'Free plan'}
+            </span>
           </div>
           <button className="icon-btn"><MoreVertical size={16} /></button>
         </div>

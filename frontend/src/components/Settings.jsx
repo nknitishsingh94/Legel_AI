@@ -45,18 +45,13 @@ const Settings = () => {
             <div className="profile-form">
               <div className="form-group-row">
                 <div className="form-group">
-                  <label>First Name</label>
-                  <input type="text" className="form-control" defaultValue="Nitish singh" />
-                </div>
-                <div className="form-group">
-                  <label>Last Name</label>
-                  <input type="text" className="form-control" defaultValue="Nk" />
-                </div>
+                <label>Full Name</label>
+                <input type="text" className="form-control" defaultValue={user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Advocate'} />
               </div>
-              
               <div className="form-group">
                 <label>Email Address</label>
-                <input type="email" className="form-control" defaultValue="nitish.singh@example.com" />
+                <input type="email" className="form-control" defaultValue={user?.email || ''} readOnly />
+              </div>
               </div>
               
               <div className="form-group">

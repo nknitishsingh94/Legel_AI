@@ -131,6 +131,7 @@ function App() {
 
   return (
     <DashboardLayout 
+      user={user}
       activeView={dashboardView} 
       onNavigate={setDashboardView}
       chats={chats}

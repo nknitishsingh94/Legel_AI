@@ -4,6 +4,7 @@ import AppNavbar from './AppNavbar';
 
 const DashboardLayout = ({ 
   children, 
+  user,
   activeView, 
   onNavigate,
   chats,
@@ -30,6 +31,7 @@ const DashboardLayout = ({
       
       <div className={`sidebar-wrapper ${isMobileSidebarOpen ? 'sidebar-open' : ''}`}>
         <AppSidebar 
+          user={user}
           activeView={activeView} 
           onNavigate={(view) => {
             if (onNavigate) onNavigate(view);
