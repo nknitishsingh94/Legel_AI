@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, CreditCard, Shield, Lock, CheckCircle } from 'lucide-react';
 import './Settings.css';
 
-const Settings = () => {
+const Settings = ({ user }) => {
   const [activeTab, setActiveTab] = useState('profile'); // profile, billing, security, privacy
 
   return (
