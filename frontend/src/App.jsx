@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { supabase } from './supabase'
 import LandingPage from './components/LandingPage'
 import DashboardLayout from './components/DashboardLayout'
 import Login from './components/Login'
@@ -30,9 +31,9 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    // Check initial auth state
     const checkUser = async () => {
       try {
-        const { supabase } = await import('./supabase');
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           setUser(session.user);
@@ -49,11 +50,10 @@ function App() {
             setUser(null);
             setIsLoggedIn(false);
             setView('landing');
-            setChats([]); // Clear chats on logout
           }
         });
       } catch (e) {
-        console.error(e);
+        console.error("Supabase Auth Error", e);
       }
     };
     checkUser();
@@ -64,14 +64,13 @@ function App() {
     const fetchChats = async () => {
       if (!user) return;
       try {
-        const { supabase } = await import('./supabase');
         const { data, error } = await supabase
           .from('chats')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
         
-        if (!error && data) {
+        if (data && !error) {
           setChats(data);
         }
       } catch (e) {
@@ -81,6 +80,12 @@ function App() {
     fetchChats();
   }, [user]);
 
+  const handleLogin = (e) => {
+    e?.preventDefault();
+    setIsLoggedIn(true);
+    setView('app');
+  };
+
   const handleSelectChat = (id) => {
     setActiveChatId(id);
     setDashboardView('chat');
@@ -88,8 +93,7 @@ function App() {
 
   const handleDeleteChat = async (id) => {
     try {
-      const { data: supabaseClient } = await import('./supabase');
-      await supabaseClient.supabase.from('chats').delete().eq('id', id);
+      await supabase.from('chats').delete().eq('id', id);
       setChats(prev => prev.filter(c => c.id !== id));
       if (activeChatId === id) {
         setActiveChatId(null);
