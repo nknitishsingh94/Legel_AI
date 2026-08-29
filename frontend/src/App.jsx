@@ -89,7 +89,11 @@ function App() {
 
   const handleDeleteChat = async (id) => {
     try {
+      // First delete all messages associated with this chat (if no CASCADE is set in DB)
+      await supabase.from('messages').delete().eq('chat_id', id);
+      // Then delete the chat itself
       await supabase.from('chats').delete().eq('id', id);
+      
       setChats(prev => prev.filter(c => c.id !== id));
       if (activeChatId === id) {
         setActiveChatId(null);
