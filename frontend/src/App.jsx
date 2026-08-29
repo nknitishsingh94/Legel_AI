@@ -159,7 +159,7 @@ function App() {
       ) : dashboardView === 'summary' ? (
         <AgreementSummary />
       ) : dashboardView === 'create' ? (
-        <CreateAgreement />
+        <CreateAgreement user={user} onNavigate={setDashboardView} />
       ) : dashboardView === 'settings' ? (
         <Settings user={user} />
       ) : (

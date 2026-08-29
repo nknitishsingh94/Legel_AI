@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { PenTool, Loader2, Copy, Check, FileText } from 'lucide-react';
+import { PenTool, Loader2, Copy, Check, FileText, Save } from 'lucide-react';
+import { supabase } from '../supabase';
 import './CreateAgreement.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
-const CreateAgreement = () => {
+const CreateAgreement = ({ user, onNavigate }) => {
   const [formData, setFormData] = useState({
     type: 'Non-Disclosure Agreement',
     partyA: '',
@@ -41,6 +42,34 @@ const CreateAgreement = () => {
       setGeneratedDoc('Failed to generate document. Please ensure the backend is running and OPENAI_API_KEY is configured.');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveDocument = async () => {
+    if (!user || !generatedDoc) return;
+    setIsSaving(true);
+    try {
+      const docTitle = `${formData.type} - ${formData.partyA} & ${formData.partyB}`;
+      const { error } = await supabase.from('documents').insert([{
+        user_id: user.id,
+        title: docTitle,
+        content: generatedDoc,
+        status: 'Draft'
+      }]);
+
+      if (error) throw error;
+      
+      // Navigate to Workspace/Files page
+      if (onNavigate) {
+        onNavigate('files');
+      }
+    } catch (error) {
+      console.error("Error saving document:", error);
+      alert("Failed to save document to database.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -125,9 +154,27 @@ const CreateAgreement = () => {
           <div className="preview-header">
             <h3>Generated Draft</h3>
             {generatedDoc && (
-              <button className="copy-btn" onClick={copyToClipboard} title="Copy to clipboard">
-                {copied ? <Check size={16} color="#10b981" /> : <Copy size={16} />}
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="copy-btn" onClick={copyToClipboard} title="Copy to clipboard">
+                  {copied ? <Check size={16} color="#10b981" /> : <Copy size={16} />}
+                </button>
+                {user && (
+                  <button 
+                    className="save-doc-btn" 
+                    onClick={handleSaveDocument} 
+                    disabled={isSaving}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      background: 'var(--accent-main)', color: 'white',
+                      border: 'none', padding: '6px 12px', borderRadius: '6px',
+                      cursor: 'pointer', fontSize: '0.875rem'
+                    }}
+                  >
+                    {isSaving ? <Loader2 size={16} className="spin-icon" /> : <Save size={16} />}
+                    Save Document
+                  </button>
+                )}
+              </div>
             )}
           </div>
           <div className="preview-content">

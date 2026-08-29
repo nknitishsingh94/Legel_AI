@@ -5,23 +5,33 @@ import './WorkspaceFiles.css';
 
 const WorkspaceFiles = ({ user }) => {
   const [files, setFiles] = useState([]);
+  const [generatedDocs, setGeneratedDocs] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    const fetchFiles = async () => {
+    const fetchData = async () => {
       if (!user) return;
-      const { data, error } = await supabase
+      
+      // Fetch uploaded files
+      const { data: fileData } = await supabase
         .from('workspace_files')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
-      if (data && !error) {
-        setFiles(data);
-      }
+      if (fileData) setFiles(fileData);
+
+      // Fetch generated documents
+      const { data: docData } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (docData) setGeneratedDocs(docData);
     };
-    fetchFiles();
+    fetchData();
   }, [user]);
 
   const handleUploadClick = () => {
@@ -123,6 +133,61 @@ const WorkspaceFiles = ({ user }) => {
                       <button className="icon-btn-small" title="Download"><Download size={16} /></button>
                       <button className="icon-btn-small wf-danger" title="Delete" onClick={() => handleDelete(file.id)}>
                         <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="wf-header" style={{ marginTop: '3rem' }}>
+        <h2>Generated Agreements</h2>
+        <p>Contracts drafted using Wakalat AI.</p>
+      </div>
+      
+      <div className="wf-table-container">
+        <table className="wf-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Date Created</th>
+              <th className="wf-actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {generatedDocs.length === 0 ? (
+              <tr>
+                <td colSpan="4" style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                  No agreements generated yet. Go to "Draft Document" to create one.
+                </td>
+              </tr>
+            ) : (
+              generatedDocs.map(doc => (
+                <tr key={doc.id}>
+                  <td>
+                    <div className="wf-file-name">
+                      <FileText size={18} className="wf-icon-doc" />
+                      <span>{doc.title}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span style={{
+                      padding: '4px 8px', borderRadius: '4px', fontSize: '12px',
+                      background: doc.status === 'Draft' ? '#f1f5f9' : '#dcfce3',
+                      color: doc.status === 'Draft' ? '#64748b' : '#16a34a'
+                    }}>
+                      {doc.status}
+                    </span>
+                  </td>
+                  <td>{new Date(doc.created_at).toLocaleDateString()}</td>
+                  <td>
+                    <div className="wf-actions">
+                      <button className="icon-btn-small" title="Send for Signature" style={{ background: 'var(--accent-main)', color: 'white' }}>
+                        eSign
                       </button>
                     </div>
                   </td>
