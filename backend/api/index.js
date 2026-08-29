@@ -256,7 +256,7 @@ app.post('/api/document/generate', async (req, res) => {
     res.json({ draft: response.content });
   } catch (error) {
     console.error("Error generating contract:", error);
-    res.status(500).json({ detail: 'Failed to generate contract' });
+    res.status(500).json({ detail: error.message || 'Failed to generate contract' });
   }
 });
 

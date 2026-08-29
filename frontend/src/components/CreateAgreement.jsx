@@ -34,12 +34,15 @@ const CreateAgreement = ({ user, onNavigate }) => {
         }),
       });
       
-      if (!response.ok) throw new Error('Generation failed');
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Generation failed');
+      }
       
       const data = await response.json();
       setGeneratedDoc(data.draft);
     } catch (error) {
-      setGeneratedDoc('Failed to generate document. Please ensure the backend is running and OPENAI_API_KEY is configured.');
+      setGeneratedDoc(`Error: ${error.message}\n\n(Tip: If you see a 429 or quota error, your OpenAI API key is correct, but your OpenAI account needs billing/credits added at platform.openai.com)`);
     } finally {
       setIsGenerating(false);
     }
