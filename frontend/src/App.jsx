@@ -80,11 +80,7 @@ function App() {
     fetchChats();
   }, [user]);
 
-  const handleLogin = (e) => {
-    e?.preventDefault();
-    setIsLoggedIn(true);
-    setView('app');
-  };
+
 
   const handleSelectChat = (id) => {
     setActiveChatId(id);
