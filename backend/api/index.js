@@ -41,6 +41,15 @@ try {
   pdfParse = require('pdf-parse');
   const langchainOpenAI = require("@langchain/openai");
   ChatOpenAI = langchainOpenAI.ChatOpenAI;
+  
+  // Adding Gemini support for free tier
+  try {
+    const googleGenAI = require("@langchain/google-genai");
+    ChatGoogleGenerativeAI = googleGenAI.ChatGoogleGenerativeAI;
+  } catch(e) {
+    console.warn("Gemini package not yet installed");
+  }
+
   const langchainCore = require("@langchain/core/messages");
   SystemMessage = langchainCore.SystemMessage;
   HumanMessage = langchainCore.HumanMessage;
@@ -69,13 +78,21 @@ try {
 
 // Initialize LLM (will fail gracefully if no API key is provided)
 const initializeLLM = () => {
-  if (!process.env.OPENAI_API_KEY) {
-    return null;
+  if (process.env.GEMINI_API_KEY && typeof ChatGoogleGenerativeAI !== 'undefined') {
+    return new ChatGoogleGenerativeAI({
+      modelName: "gemini-1.5-flash",
+      temperature: 0.2,
+      apiKey: process.env.GEMINI_API_KEY
+    });
   }
-  return new ChatOpenAI({
-    modelName: "gpt-4o-mini", // Cost-effective model
-    temperature: 0.2,
-  });
+  if (process.env.OPENAI_API_KEY) {
+    return new ChatOpenAI({
+      modelName: "gpt-4o-mini", // Cost-effective model
+      temperature: 0.2,
+      apiKey: process.env.OPENAI_API_KEY
+    });
+  }
+  return null;
 };
 
 // In-memory conversation store (for demo purposes)
