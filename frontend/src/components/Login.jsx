@@ -5,6 +5,7 @@ import { supabase } from '../supabase';
 const Login = ({ onLogin, onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -12,6 +13,10 @@ const Login = ({ onLogin, onBack }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) return;
+    if (!isLoginMode && !fullName) {
+      setErrorMsg('Please enter your full name');
+      return;
+    }
     
     setIsLoading(true);
     setErrorMsg('');
@@ -21,9 +26,16 @@ const Login = ({ onLogin, onBack }) => {
       if (isLoginMode) {
         ({ data, error } = await supabase.auth.signInWithPassword({ email, password }));
       } else {
-        ({ data, error } = await supabase.auth.signUp({ email, password }));
+        ({ data, error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: {
+            data: {
+              full_name: fullName
+            }
+          }
+        }));
         if (!error && data.user) {
-          // Signup successful, usually Supabase will auto login or require email confirm
           setErrorMsg("Account created! Logging you in...");
         }
       }
@@ -106,10 +118,22 @@ const Login = ({ onLogin, onBack }) => {
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {!isLoginMode && (
+              <div>
+                <input 
+                  type="text" 
+                  placeholder="Full Name" 
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '0.875rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.95rem', background: '#f8fafc', outline: 'none' }}
+                />
+              </div>
+            )}
             <div>
               <input 
                 type="email" 
-                placeholder="Email address" 
+                placeholder="Email address"  
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
