@@ -67,6 +67,60 @@ const WorkspaceFiles = ({ user }) => {
     f.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const [showSignModal, setShowSignModal] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
+  const [signerName, setSignerName] = useState('');
+  const [signerEmail, setSignerEmail] = useState('');
+  const [signingLink, setSigningLink] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const openSignModal = (doc) => {
+    setSelectedDoc(doc);
+    setSignerName('');
+    setSignerEmail('');
+    setSigningLink('');
+    setShowSignModal(true);
+  };
+
+  const handleSendForSignature = async (e) => {
+    e.preventDefault();
+    if (!signerName || !signerEmail || !selectedDoc) return;
+    setIsSending(true);
+
+    try {
+      const { data: sigData, error: sigError } = await supabase
+        .from('signatures')
+        .insert([{
+          document_id: selectedDoc.id,
+          signer_name: signerName,
+          signer_email: signerEmail,
+          status: 'Pending'
+        }])
+        .select()
+        .single();
+
+      if (sigError) throw sigError;
+
+      await supabase.from('audit_logs').insert([{
+        document_id: selectedDoc.id,
+        action: 'Sent for Signature',
+        performed_by: user.email || 'System',
+        ip_address: 'Client'
+      }]);
+
+      await supabase.from('documents').update({ status: 'Pending Signature' }).eq('id', selectedDoc.id);
+
+      const link = `${window.location.origin}/sign/${selectedDoc.id}/${sigData.id}`;
+      setSigningLink(link);
+      setGeneratedDocs(prev => prev.map(d => d.id === selectedDoc.id ? { ...d, status: 'Pending Signature' } : d));
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create signature request");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div className="workspace-files-container animate-fade-in">
       <div className="wf-header">
@@ -186,9 +240,16 @@ const WorkspaceFiles = ({ user }) => {
                   <td>{new Date(doc.created_at).toLocaleDateString()}</td>
                   <td>
                     <div className="wf-actions">
-                      <button className="icon-btn-small" title="Send for Signature" style={{ background: 'var(--accent-main)', color: 'white' }}>
-                        eSign
-                      </button>
+                      {doc.status !== 'Signed' && (
+                        <button 
+                          className="icon-btn-small" 
+                          title="Send for Signature" 
+                          style={{ background: 'var(--accent-main)', color: 'white', padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer' }}
+                          onClick={() => openSignModal(doc)}
+                        >
+                          eSign
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -197,6 +258,74 @@ const WorkspaceFiles = ({ user }) => {
           </tbody>
         </table>
       </div>
+
+      {showSignModal && (
+        <div className="modal-overlay" style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div className="modal-content" style={{
+            background: 'white', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '500px'
+          }}>
+            <h2 style={{marginTop: 0, marginBottom: '1rem'}}>Send for e-Signature</h2>
+            <p style={{marginBottom: '1.5rem', color: '#64748b'}}>
+              Document: <strong>{selectedDoc?.title}</strong>
+            </p>
+
+            {!signingLink ? (
+              <form onSubmit={handleSendForSignature}>
+                <div className="form-group" style={{marginBottom: '1rem'}}>
+                  <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: 500}}>Signer's Name</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={signerName} 
+                    onChange={e => setSignerName(e.target.value)} 
+                    style={{width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1'}}
+                  />
+                </div>
+                <div className="form-group" style={{marginBottom: '1.5rem'}}>
+                  <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: 500}}>Signer's Email</label>
+                  <input 
+                    type="email" 
+                    required 
+                    value={signerEmail} 
+                    onChange={e => setSignerEmail(e.target.value)} 
+                    style={{width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1'}}
+                  />
+                </div>
+                <div style={{display: 'flex', gap: '1rem', justifyContent: 'flex-end'}}>
+                  <button type="button" onClick={() => setShowSignModal(false)} style={{
+                    padding: '0.75rem 1.5rem', background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b'
+                  }}>Cancel</button>
+                  <button type="submit" disabled={isSending} style={{
+                    padding: '0.75rem 1.5rem', background: 'var(--accent-main)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer'
+                  }}>
+                    {isSending ? 'Creating Link...' : 'Generate Secure Link'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div>
+                <div style={{
+                  padding: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', 
+                  wordBreak: 'break-all', marginBottom: '1.5rem', fontSize: '0.875rem'
+                }}>
+                  {signingLink}
+                </div>
+                <div style={{display: 'flex', gap: '1rem', justifyContent: 'flex-end'}}>
+                  <button onClick={() => navigator.clipboard.writeText(signingLink)} style={{
+                    padding: '0.75rem 1.5rem', background: 'var(--accent-main)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer'
+                  }}>Copy Link</button>
+                  <button onClick={() => setShowSignModal(false)} style={{
+                    padding: '0.75rem 1.5rem', background: '#e2e8f0', color: '#1e293b', border: 'none', borderRadius: '6px', cursor: 'pointer'
+                  }}>Done</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

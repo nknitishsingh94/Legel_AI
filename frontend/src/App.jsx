@@ -18,11 +18,19 @@ import WorkspaceFiles from './components/WorkspaceFiles'
 import AgreementSummary from './components/AgreementSummary'
 import CreateAgreement from './components/CreateAgreement'
 import Settings from './components/Settings'
+import SigningPortal from './components/SigningPortal'
 
 function App() {
+  const [isSigningRoute, setIsSigningRoute] = useState(false);
   const [view, setView] = useState('landing'); // 'landing', 'login', 'app'
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [dashboardView, setDashboardView] = useState('overview'); // 'overview', 'compare', 'chat', etc.
+
+  useEffect(() => {
+    if (window.location.pathname.startsWith('/sign/')) {
+      setIsSigningRoute(true);
+    }
+  }, []);
 
   // --- Chat History Management (Supabase) ---
   const [chats, setChats] = useState([]);
@@ -122,6 +130,7 @@ function App() {
     setView('app');
   };
 
+  if (isSigningRoute) return <SigningPortal />;
   if (view === 'landing') return <LandingPage onGetStarted={handleGetStarted} onLoginClick={() => setView('login')} onAboutClick={() => setView('about')} onNavigate={setView} />;
   if (view === 'about') return <AboutUs onBack={() => setView('landing')} onGetStarted={handleGetStarted} onNavigate={setView} />;
   if (view === 'careers') return <Careers onBack={() => setView('landing')} onGetStarted={handleGetStarted} onNavigate={setView} />;
