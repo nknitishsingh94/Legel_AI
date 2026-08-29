@@ -132,7 +132,10 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId }) => {
     <div className="chat-area-wrapper animate-fade-in" style={{ animationDelay: '0.1s' }}>
       {!isChatting ? (
         <div className="chat-empty-state">
-          <h1 className="chat-empty-title">Start a new legal query</h1>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h1 className="chat-empty-title" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Welcome to <span style={{ color: 'var(--accent-main)' }}>Wakalat AI</span> 👋</h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Your personal intelligent legal assistant. How can I help you today?</p>
+          </div>
           
           <div className="floating-prompts-container">
             {/* Top Row: Moves Right to Left (Anti-Clockwise relative) */}
@@ -196,6 +199,17 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId }) => {
         </div>
       ) : (
         <div className="chat-container">
+          {/* Default Welcome Message from AI */}
+          <div className="message ai">
+            <div className="message-avatar">
+              <ShieldAlert size={20} />
+            </div>
+            <div className="message-bubble" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+              <strong>Welcome to Wakalat AI!</strong> 👋<br/><br/>
+              I am your personal AI Legal Assistant. Please describe your legal issue, ask a question, or tell me what document you'd like to draft today.
+            </div>
+          </div>
+          
           {messages.map((msg) => (
             <div key={msg.id} className={`message ${msg.sender}`}>
               <div className="message-avatar">
