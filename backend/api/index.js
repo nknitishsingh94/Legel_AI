@@ -33,14 +33,39 @@ app.post('/api/auth/login', (req, res) => {
   res.status(401).json({ detail: 'Invalid credentials' });
 });
 
-const multer = require('multer');
-const pdfParse = require('pdf-parse');
-const { ChatOpenAI } = require("@langchain/openai");
-const { SystemMessage, HumanMessage, AIMessage } = require("@langchain/core/messages");
-require('dotenv').config();
+let multer, pdfParse, ChatOpenAI, SystemMessage, HumanMessage, AIMessage;
+let initError = null;
+
+try {
+  multer = require('multer');
+  pdfParse = require('pdf-parse');
+  const langchainOpenAI = require("@langchain/openai");
+  ChatOpenAI = langchainOpenAI.ChatOpenAI;
+  const langchainCore = require("@langchain/core/messages");
+  SystemMessage = langchainCore.SystemMessage;
+  HumanMessage = langchainCore.HumanMessage;
+  AIMessage = langchainCore.AIMessage;
+  require('dotenv').config();
+} catch (error) {
+  initError = error.toString() + " | Stack: " + error.stack;
+  console.error("Initialization Error:", error);
+}
+
+// Modify Root to show error if any
+app.get('/', (req, res) => {
+  if (initError) {
+    return res.status(500).json({ status: 'error', message: 'Backend initialization failed', error: initError });
+  }
+  res.json({ status: 'ok', message: 'Wakalat AI Backend is running (Node.js).' });
+});
 
 // Configure multer for memory storage
-const upload = multer({ storage: multer.memoryStorage() });
+let upload = null;
+try {
+  if (multer) upload = multer({ storage: multer.memoryStorage() });
+} catch (e) {
+  console.error(e);
+}
 
 // Initialize LLM (will fail gracefully if no API key is provided)
 const initializeLLM = () => {
@@ -137,7 +162,10 @@ app.post('/api/chat/message', async (req, res) => {
 });
 
 // ---- Document Upload ----
-app.post('/api/document/upload', upload.single('file'), async (req, res) => {
+app.post('/api/document/upload', (req, res, next) => {
+  if (!upload) return res.status(500).json({ detail: 'Multer failed to initialize' });
+  upload.single('file')(req, res, next);
+}, async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ detail: 'No file uploaded' });
   }
@@ -234,6 +262,9 @@ app.post('/api/document/generate', async (req, res) => {
 
 // ---- Dashboard Live Stats ----
 app.get('/api/dashboard/live-stats', (req, res) => {
+  if (initError) {
+    return res.status(500).json({ status: 'error', error: initError });
+  }
   const now = new Date();
   const timeLabel = now.toLocaleTimeString('en-IN', { hour12: false });
 
