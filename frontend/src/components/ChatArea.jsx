@@ -102,7 +102,9 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
       text: textToSend
     }]);
 
-    if (setUsageCount) {
+    const isVip = user?.email === 'nknitishsingh94@gmail.com';
+
+    if (setUsageCount && !isVip) {
       setUsageCount(prev => {
         const newCount = prev + 1;
         if (newCount === 45) {
@@ -125,7 +127,7 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
       const response = await fetch(`${API_BASE_URL}/chat/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend, userId: user?.id }),
+        body: JSON.stringify({ message: textToSend, userId: user?.id, userEmail: user?.email }),
       });
 
       if (!response.ok) throw new Error('API error');

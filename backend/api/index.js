@@ -118,11 +118,14 @@ app.post('/api/feedback/generate', async (req, res) => {
 
 // ---- Chat ----
 app.post('/api/chat/message', async (req, res) => {
-  const { message, sessionId = 'default', language = 'en', userId } = req.body;
+  const { message, sessionId = 'default', language = 'en', userId, userEmail } = req.body;
   const llm = initializeLLM();
 
-  // Enforce usage limit securely on the backend
-  if (userId && supabaseAdmin) {
+  // VIP Bypass
+  const isVip = userEmail === 'nknitishsingh94@gmail.com';
+
+  // Enforce usage limit securely on the backend (skip for VIP)
+  if (userId && supabaseAdmin && !isVip) {
     try {
       const startOfMonth = new Date();
       startOfMonth.setDate(1);

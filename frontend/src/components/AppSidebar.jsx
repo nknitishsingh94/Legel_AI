@@ -10,7 +10,10 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
   const [openCases, setOpenCases] = useState(true);
   const [openChats, setOpenChats] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const isVip = user?.email === 'nknitishsingh94@gmail.com';
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -24,16 +27,36 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
   const usagePercentage = Math.min((usageCount / limit) * 100, 100);
   const isLimitReached = usageCount >= limit;
 
+  const handleCreateWorkspace = () => {
+    if (isVip) {
+      alert("VIP Access: Workspace created successfully!");
+    } else {
+      alert("This is a Pro feature. Please upgrade to Pro to create multiple workspaces.");
+    }
+    setWorkspaceMenuOpen(false);
+  };
+
   return (
     <aside className="ai-lawyer-sidebar">
       {/* Workspace Selector */}
-      <div className="sidebar-workspace">
+      <div className="sidebar-workspace" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setWorkspaceMenuOpen(!workspaceMenuOpen)}>
         <div className="workspace-icon"></div>
         <div className="workspace-info">
           <span className="workspace-label">Workspace</span>
-          <span className="workspace-name">New Workspace</span>
+          <span className="workspace-name">Personal Workspace</span>
         </div>
-        <button className="icon-btn"><MoreVertical size={16} /></button>
+        <button className="icon-btn" style={{ pointerEvents: 'none' }}><MoreVertical size={16} /></button>
+        
+        {workspaceMenuOpen && (
+          <div className="dropdown-menu animate-fade-in" style={{ position: 'absolute', top: '100%', left: '0', width: '100%', background: '#fff', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: '1px solid var(--border-color)', zIndex: 100, marginTop: '4px' }}>
+            <button style={{ width: '100%', padding: '10px 12px', textAlign: 'left', background: '#f8fafc', border: 'none', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              ✓ Personal Workspace
+            </button>
+            <button onClick={handleCreateWorkspace} style={{ width: '100%', padding: '10px 12px', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '0.85rem', color: isVip ? 'var(--accent-main)' : 'var(--text-secondary)' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+              + Create New Workspace {isVip ? '' : '(Pro)'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Search */}
