@@ -14,6 +14,8 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
   const [searchTerm, setSearchTerm] = useState('');
 
   const isVip = user?.email === 'nknitishsingh94@gmail.com';
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Advocate';
+  const avatarUrl = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=0d9488&color=fff`;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -168,12 +170,12 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
         </button>
 
         <div className="sidebar-user-profile" style={{ position: 'relative' }}>
-          <div className="user-avatar-circle">
-            <User size={18} />
+          <div className="user-avatar-circle" style={{ overflow: 'hidden', padding: 0, border: 'none', background: 'transparent' }}>
+            <img src={avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div className="user-details">
             <span className="user-name">
-              {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Advocate'}
+              {userName}
             </span>
             <span className="user-plan">
               {user?.app_metadata?.plan || 'Free plan'}

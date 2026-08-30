@@ -53,6 +53,9 @@ const AppNavbar = ({ onToggleSidebar, user, onNavigate, chats = [], onSelectChat
     setIsSearchFocused(false);
   };
 
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Advocate';
+  const avatarUrl = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=0d9488&color=fff`;
+
   return (
     <header className="app-navbar">
       <div className="app-navbar-left">
@@ -137,16 +140,16 @@ const AppNavbar = ({ onToggleSidebar, user, onNavigate, chats = [], onSelectChat
 
         {/* Profile */}
         <div ref={profileRef} style={{ position: 'relative' }}>
-          <button className="profile-btn" onClick={() => setShowProfileMenu(!showProfileMenu)}>
-            <User size={20} />
-            <span className="hide-on-mobile">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Advocate Profile'}</span>
+          <button className="profile-btn" onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <img src={avatarUrl} alt="Profile" style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
+            <span className="hide-on-mobile">{userName}</span>
           </button>
 
           {showProfileMenu && (
             <div className="dropdown-menu animate-fade-in" style={{ position: 'absolute', top: '120%', right: '0', width: '240px', background: '#fff', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)', border: '1px solid var(--border-color)', zIndex: 100, padding: '0.5rem' }}>
               <div style={{ padding: '0.75rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
                 <p style={{ margin: 0, fontWeight: 600, color: '#111827', fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {user?.user_metadata?.full_name || 'Advocate'}
+                  {userName}
                 </p>
                 <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {user?.email}
