@@ -275,7 +275,6 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
           />
         </div>
         <div className="floating-input-actions">
-          <span style={{ fontSize: '12px', color: '#9ca3af', marginRight: '8px' }}>Ctrl+Y</span>
           <button className="send-btn" onClick={() => handleSend()} disabled={isLoading} style={{ width: '36px', height: '36px', borderRadius: '50%' }}>
             {isLoading ? <Loader2 size={16} className="spin-icon" /> : <Send size={16} />}
           </button>

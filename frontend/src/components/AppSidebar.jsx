@@ -69,7 +69,6 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <span className="shortcut">Ctrl+K</span>
       </div>
 
       {/* Navigation */}
@@ -81,7 +80,6 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
         <a href="#" className={`nav-item-link ${activeView === 'chat' && !activeChatId ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if(onNewChat) onNewChat(); }}>
           <Edit size={18} />
           <span>New chat</span>
-          <span className="shortcut-badge">Ctrl+/</span>
         </a>
         <a href="#" className={`nav-item-link ${activeView === 'files' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if(onNavigate) onNavigate('files'); }}>
           <Folder size={18} />
