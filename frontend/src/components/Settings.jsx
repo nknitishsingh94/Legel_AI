@@ -88,6 +88,19 @@ const Settings = ({ user }) => {
             </div>
             
             <div className="profile-form">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px', paddingBottom: '24px', borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #e2e8f0' }}>
+                  <img src={user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Advocate')}&background=0d9488&color=fff&size=128`} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#0f172a', marginBottom: '8px' }}>Profile Photo</h3>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: '13px' }}>Upload New</button>
+                    <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: '13px', color: '#ef4444', borderColor: '#fca5a5', background: '#fef2f2' }}>Remove</button>
+                  </div>
+                </div>
+              </div>
+
               <div className="form-group-row">
                 <div className="form-group">
                 <label>Full Name</label>
