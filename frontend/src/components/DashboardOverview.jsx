@@ -98,8 +98,6 @@ const DashboardOverview = ({ usageCount = 0, user }) => {
         </div>
       </div>
 
-      </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
         {/* Usage Progress Card */}
         <div className="dash-card" style={{ background: isLimitReached ? '#fef2f2' : '#f8fafc', border: isLimitReached ? '1px solid #fca5a5' : '1px solid var(--border-color)', margin: 0 }}>
