@@ -33,14 +33,14 @@ app.post('/api/auth/login', (req, res) => {
   res.status(401).json({ detail: 'Invalid credentials' });
 });
 
-let multer, pdfParse, ChatOpenAI, SystemMessage, HumanMessage, AIMessage;
+let multer, pdfParse, ChatGoogleGenerativeAI, SystemMessage, HumanMessage, AIMessage;
 let initError = null;
 
 try {
   multer = require('multer');
   pdfParse = require('pdf-parse');
-  const langchainOpenAI = require("@langchain/openai");
-  ChatOpenAI = langchainOpenAI.ChatOpenAI;
+  const googleGenAI = require("@langchain/google-genai");
+  ChatGoogleGenerativeAI = googleGenAI.ChatGoogleGenerativeAI;
   const langchainCore = require("@langchain/core/messages");
   SystemMessage = langchainCore.SystemMessage;
   HumanMessage = langchainCore.HumanMessage;
@@ -69,11 +69,11 @@ try {
 
 // Initialize LLM (will fail gracefully if no API key is provided)
 const initializeLLM = () => {
-  if (process.env.OPENAI_API_KEY) {
-    return new ChatOpenAI({
-      modelName: "gpt-4o-mini", // Cost-effective model
+  if (process.env.GEMINI_API_KEY && typeof ChatGoogleGenerativeAI !== 'undefined') {
+    return new ChatGoogleGenerativeAI({
+      modelName: "gemini-1.5-flash",
       temperature: 0.2,
-      apiKey: process.env.OPENAI_API_KEY
+      apiKey: process.env.GEMINI_API_KEY
     });
   }
   return null;
