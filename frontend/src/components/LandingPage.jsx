@@ -17,7 +17,7 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
       {/* Navbar */}
       <nav className="navbar">
         <div className="sidebar-logo" style={{ marginBottom: 0 }}>
-          <Scale size={28} color="var(--accent-gold)" />
+          <img src="/logo.jpg" alt="Wakalat AI Logo" style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover' }} />
           <div style={{ color: '#111827' }}>Wakalat<span style={{ color: 'var(--accent-gold)' }}>AI</span></div>
         </div>
         
