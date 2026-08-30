@@ -4,7 +4,7 @@ import { supabase } from '../supabase';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
-const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId }) => {
+const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageCount, setUsageCount }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -66,6 +66,11 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId }) => {
     const textToSend = customInput || input;
     if (!textToSend.trim() || isLoading) return;
 
+    if (usageCount >= 50) {
+      alert("You have reached your free limit of 50 AI legal research queries for this month. Please upgrade to Pro to continue.");
+      return;
+    }
+
     const userMsgId = Date.now().toString();
     const userMsg = { id: userMsgId, sender: 'user', text: textToSend };
     
@@ -97,6 +102,8 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId }) => {
       text: textToSend
     }]);
 
+    if (setUsageCount) setUsageCount(prev => prev + 1);
+
     setInput('');
     setIsLoading(true);
 
@@ -107,7 +114,7 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId }) => {
       const response = await fetch(`${API_BASE_URL}/chat/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend }),
+        body: JSON.stringify({ message: textToSend, userId: user?.id }),
       });
 
       if (!response.ok) throw new Error('API error');

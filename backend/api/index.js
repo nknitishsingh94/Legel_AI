@@ -101,8 +101,38 @@ const chatMemory = {};
 
 // ---- Chat ----
 app.post('/api/chat/message', async (req, res) => {
-  const { message, sessionId = 'default', language = 'en' } = req.body;
+  const { message, sessionId = 'default', language = 'en', userId } = req.body;
   const llm = initializeLLM();
+
+  // Enforce usage limit securely on the backend
+  if (userId && supabaseAdmin) {
+    try {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const { data: userChats } = await supabaseAdmin
+        .from('chats')
+        .select('id')
+        .eq('user_id', userId);
+
+      if (userChats && userChats.length > 0) {
+        const chatIds = userChats.map(c => c.id);
+        const { count } = await supabaseAdmin
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('sender', 'user')
+          .in('chat_id', chatIds)
+          .gte('created_at', startOfMonth.toISOString());
+        
+        if (count >= 50) {
+          return res.status(403).json({ reply: "You have reached your free limit of 50 AI legal research queries for this month. Please upgrade to Pro to continue." });
+        }
+      }
+    } catch (e) {
+      console.error("Usage limit check error:", e);
+    }
+  }
 
   if (!llm) {
     const isHindi = message.match(/[अ-ह]/) || language === 'hi';

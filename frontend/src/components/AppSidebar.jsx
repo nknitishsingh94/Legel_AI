@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { 
   MoreVertical, Search, Edit, Folder, FileText, 
-  Files, FilePlus, ChevronDown, Plus, Sparkles, User, LayoutDashboard, Settings, Trash2, MessageSquare
+  Files, FilePlus, ChevronDown, Plus, Sparkles, User, LayoutDashboard, Settings, Trash2, MessageSquare, Zap
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './AppSidebar.css';
 
-const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelectChat, onDeleteChat, onNewChat, user }) => {
+const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelectChat, onDeleteChat, onNewChat, user, usageCount = 0 }) => {
   const [openCases, setOpenCases] = useState(true);
   const [openChats, setOpenChats] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -18,6 +18,10 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
   const handleUpgrade = () => {
     alert("Plan upgrade feature coming soon!");
   };
+
+  const limit = 50;
+  const usagePercentage = Math.min((usageCount / limit) * 100, 100);
+  const isLimitReached = usageCount >= limit;
 
   return (
     <aside className="ai-lawyer-sidebar">
@@ -125,8 +129,32 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
         </div>
       </div>
 
-      {/* Footer (Pro + User) */}
+      {/* Footer (Usage + Pro + User) */}
       <div className="sidebar-footer-fixed">
+        
+        {/* Usage Progress */}
+        <div style={{ marginBottom: '16px', padding: '12px', background: 'rgba(0,0,0,0.03)', borderRadius: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '12px', fontWeight: '600' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-primary)' }}>
+              <Zap size={14} color="var(--accent-main)" /> Free Plan
+            </span>
+            <span style={{ color: isLimitReached ? '#ef4444' : 'var(--text-secondary)' }}>
+              {usageCount} / {limit} queries
+            </span>
+          </div>
+          <div style={{ width: '100%', height: '6px', background: 'var(--border-color)', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
+            <div style={{ 
+              width: `${usagePercentage}%`, 
+              height: '100%', 
+              background: isLimitReached ? '#ef4444' : 'var(--accent-main)',
+              transition: 'width 0.3s ease'
+            }}></div>
+          </div>
+          <button onClick={handleUpgrade} style={{ width: '100%', padding: '6px', fontSize: '12px', fontWeight: '600', color: 'var(--accent-main)', background: 'transparent', border: '1px solid var(--accent-main)', borderRadius: '4px', cursor: 'pointer' }}>
+            Upgrade to Pro
+          </button>
+        </div>
+
         <button className={`nav-item-link ${activeView === 'settings' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if(onNavigate) onNavigate('settings'); }} style={{ width: '100%', marginBottom: '12px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px', borderRadius: '6px', color: 'var(--text-secondary)' }}>
           <Settings size={18} />
           <span style={{ fontSize: '14px', fontWeight: '500' }}>Settings</span>

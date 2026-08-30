@@ -11,7 +11,8 @@ const DashboardLayout = ({
   activeChatId,
   onSelectChat,
   onDeleteChat,
-  onNewChat
+  onNewChat,
+  usageCount
 }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -42,6 +43,7 @@ const DashboardLayout = ({
           onSelectChat={onSelectChat}
           onDeleteChat={onDeleteChat}
           onNewChat={onNewChat}
+          usageCount={usageCount}
         />
       </div>
 

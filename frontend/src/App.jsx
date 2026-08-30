@@ -67,28 +67,47 @@ function App() {
     checkUser();
   }, []);
 
+  const [usageCount, setUsageCount] = useState(0);
+
   // Fetch initial chats from Supabase when user logs in
   useEffect(() => {
-    const fetchChats = async () => {
+    const fetchChatsAndUsage = async () => {
       if (!user) return;
       try {
-        const { data, error } = await supabase
+        const { data: chatsData, error: chatsError } = await supabase
           .from('chats')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
         
-        if (data && !error) {
-          setChats(data);
+        if (chatsData && !chatsError) {
+          setChats(chatsData);
+
+          // Calculate usage for current month
+          const startOfMonth = new Date();
+          startOfMonth.setDate(1);
+          startOfMonth.setHours(0, 0, 0, 0);
+
+          if (chatsData.length > 0) {
+            const chatIds = chatsData.map(c => c.id);
+            const { count, error: countError } = await supabase
+              .from('messages')
+              .select('*', { count: 'exact', head: true })
+              .eq('sender', 'user')
+              .in('chat_id', chatIds)
+              .gte('created_at', startOfMonth.toISOString());
+            
+            if (!countError && count !== null) {
+              setUsageCount(count);
+            }
+          }
         }
       } catch (e) {
         console.error("Supabase not fully setup yet.", e);
       }
     };
-    fetchChats();
+    fetchChatsAndUsage();
   }, [user]);
-
-
 
   const handleSelectChat = (id) => {
     setActiveChatId(id);
@@ -152,6 +171,7 @@ function App() {
       onSelectChat={handleSelectChat}
       onDeleteChat={handleDeleteChat}
       onNewChat={handleNewChat}
+      usageCount={usageCount}
     >
       {dashboardView === 'compare' ? (
         <CompareAgreements />
@@ -162,6 +182,8 @@ function App() {
           setChats={setChats} 
           activeChatId={activeChatId} 
           setActiveChatId={setActiveChatId} 
+          usageCount={usageCount}
+          setUsageCount={setUsageCount}
         />
       ) : dashboardView === 'files' ? (
         <WorkspaceFiles user={user} />
