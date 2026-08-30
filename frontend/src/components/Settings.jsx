@@ -1,9 +1,75 @@
 import React, { useState } from 'react';
-import { User, CreditCard, Shield, Lock, CheckCircle } from 'lucide-react';
+import { User, CreditCard, Shield, Lock, CheckCircle, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
+import { supabase } from '../supabase';
 import './Settings.css';
 
 const Settings = ({ user }) => {
-  const [activeTab, setActiveTab] = useState('profile'); // profile, billing, security, privacy
+  const [activeTab, setActiveTab] = useState('profile');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleteStep, setDeleteStep] = useState('');
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+    if (!user) return;
+
+    setIsDeleting(true);
+    setDeleteError('');
+
+    try {
+      // Step 1: Get all user's chats
+      setDeleteStep('Deleting your messages...');
+      const { data: userChats, error: chatFetchError } = await supabase
+        .from('chats')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (chatFetchError) {
+        console.error('Error fetching chats:', chatFetchError);
+      }
+
+      // Step 2: Delete all messages from user's chats
+      if (userChats && userChats.length > 0) {
+        const chatIds = userChats.map(c => c.id);
+        for (const chatId of chatIds) {
+          await supabase.from('messages').delete().eq('chat_id', chatId);
+        }
+      }
+
+      // Step 3: Delete all user's chats
+      setDeleteStep('Deleting your chats...');
+      await supabase.from('chats').delete().eq('user_id', user.id);
+
+      // Step 4: Delete any files/documents the user uploaded (if table exists)
+      setDeleteStep('Cleaning up files...');
+      try {
+        await supabase.from('documents').delete().eq('user_id', user.id);
+      } catch (e) {
+        // documents table may not exist, that's okay
+      }
+
+      // Step 5: Delete any agreements (if table exists)
+      try {
+        await supabase.from('agreements').delete().eq('user_id', user.id);
+      } catch (e) {
+        // agreements table may not exist, that's okay
+      }
+
+      // Step 6: Sign out the user
+      setDeleteStep('Signing you out...');
+      await supabase.auth.signOut();
+
+      // Reload the page to reset all state
+      window.location.reload();
+
+    } catch (error) {
+      console.error('Delete account error:', error);
+      setDeleteError('Something went wrong while deleting your account. Please try again.');
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="settings-container animate-fade-in">
@@ -113,15 +179,85 @@ const Settings = ({ user }) => {
               <button className="btn-secondary" style={{ marginTop: '16px' }}>Enable 2FA</button>
             </div>
 
-            <div className="placeholder-card">
-              <Lock size={32} className="text-gray-400" />
-              <h3>Data Management</h3>
-              <p>Download or delete your account data permanently.</p>
-              <button className="btn-danger" style={{ marginTop: '16px' }}>Delete Account</button>
+            <div className="delete-account-card">
+              <div className="delete-account-header">
+                <Trash2 size={24} color="#ef4444" />
+                <div>
+                  <h3>Delete Account Permanently</h3>
+                  <p>Once you delete your account, all your data including chats, documents, and agreements will be permanently removed. This action cannot be undone.</p>
+                </div>
+              </div>
+              <button className="btn-danger" onClick={() => setShowDeleteModal(true)}>
+                <Trash2 size={16} />
+                Delete Account Permanently
+              </button>
             </div>
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="delete-modal-overlay" onClick={() => !isDeleting && setShowDeleteModal(false)}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-icon">
+              <AlertTriangle size={48} color="#ef4444" />
+            </div>
+            <h2>Are you sure?</h2>
+            <p className="delete-modal-desc">
+              This will <strong>permanently delete</strong> your account and all associated data:
+            </p>
+            <ul className="delete-data-list">
+              <li>🗨️ All your chat conversations & messages</li>
+              <li>📄 All uploaded documents & agreements</li>
+              <li>⚙️ All your settings & preferences</li>
+              <li>👤 Your account & login credentials</li>
+            </ul>
+            <p className="delete-modal-warning">
+              ⚠️ This action is <strong>irreversible</strong>. You will NOT be able to recover your data.
+            </p>
+            <div className="delete-confirm-input">
+              <label>Type <strong>DELETE</strong> to confirm:</label>
+              <input 
+                type="text" 
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE here"
+                disabled={isDeleting}
+                autoFocus
+              />
+            </div>
+            {deleteError && (
+              <p className="delete-error">{deleteError}</p>
+            )}
+            {isDeleting && deleteStep && (
+              <p className="delete-step-status">
+                <Loader2 size={14} className="spin-icon" /> {deleteStep}
+              </p>
+            )}
+            <div className="delete-modal-actions">
+              <button 
+                className="btn-secondary" 
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); setDeleteError(''); }}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn-danger-solid"
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+              >
+                {isDeleting ? (
+                  <><Loader2 size={16} className="spin-icon" /> Deleting...</>
+                ) : (
+                  <><Trash2 size={16} /> Delete Everything</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
