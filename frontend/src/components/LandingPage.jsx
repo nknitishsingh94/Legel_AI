@@ -22,7 +22,7 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
         </div>
         
         {/* Desktop Links */}
-        <div className={`nav-links ${isMobileMenuOpen ? 'mobile-open' : 'hide-on-mobile'}`} style={{ background: 'transparent', padding: 0, gap: '2rem' }}>
+        <div className="nav-links hide-on-mobile" style={{ background: 'transparent', padding: 0, gap: '2rem' }}>
           <MegaMenu title="Products" />
           <a href="#learn" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Learn <ChevronDown size={14} /></a>
           <a href="#pricing" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Pricing</a>
@@ -41,7 +41,7 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
 
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="mobile-dropdown-menu show-on-mobile">
+          <div className="mobile-dropdown-menu">
             <a href="#learn" onClick={() => setIsMobileMenuOpen(false)}>Learn</a>
             <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)}>Pricing</a>
             <a href="#" onClick={(e) => { e.preventDefault(); onAboutClick(); setIsMobileMenuOpen(false); }}>About Us</a>
