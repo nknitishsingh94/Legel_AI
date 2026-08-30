@@ -88,7 +88,7 @@ try {
 const initializeLLM = () => {
   if (process.env.GEMINI_API_KEY && typeof ChatGoogleGenerativeAI !== 'undefined') {
     return new ChatGoogleGenerativeAI({
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-flash-latest",
       temperature: 0.2,
       apiKey: process.env.GEMINI_API_KEY
     });
