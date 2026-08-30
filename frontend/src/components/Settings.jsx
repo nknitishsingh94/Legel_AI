@@ -18,46 +18,25 @@ const Settings = ({ user }) => {
     setIsDeleting(true);
     setDeleteError('');
 
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+
     try {
-      // Step 1: Get all user's chats
-      setDeleteStep('Deleting your messages...');
-      const { data: userChats, error: chatFetchError } = await supabase
-        .from('chats')
-        .select('id')
-        .eq('user_id', user.id);
+      // Step 1: Call backend to delete all data + auth user permanently
+      setDeleteStep('Deleting your account and all data...');
+      
+      const response = await fetch(`${API_BASE_URL}/account/delete`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      });
 
-      if (chatFetchError) {
-        console.error('Error fetching chats:', chatFetchError);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || 'Failed to delete account');
       }
 
-      // Step 2: Delete all messages from user's chats
-      if (userChats && userChats.length > 0) {
-        const chatIds = userChats.map(c => c.id);
-        for (const chatId of chatIds) {
-          await supabase.from('messages').delete().eq('chat_id', chatId);
-        }
-      }
-
-      // Step 3: Delete all user's chats
-      setDeleteStep('Deleting your chats...');
-      await supabase.from('chats').delete().eq('user_id', user.id);
-
-      // Step 4: Delete any files/documents the user uploaded (if table exists)
-      setDeleteStep('Cleaning up files...');
-      try {
-        await supabase.from('documents').delete().eq('user_id', user.id);
-      } catch (e) {
-        // documents table may not exist, that's okay
-      }
-
-      // Step 5: Delete any agreements (if table exists)
-      try {
-        await supabase.from('agreements').delete().eq('user_id', user.id);
-      } catch (e) {
-        // agreements table may not exist, that's okay
-      }
-
-      // Step 6: Sign out the user
+      // Step 2: Sign out locally
       setDeleteStep('Signing you out...');
       await supabase.auth.signOut();
 
@@ -66,7 +45,7 @@ const Settings = ({ user }) => {
 
     } catch (error) {
       console.error('Delete account error:', error);
-      setDeleteError('Something went wrong while deleting your account. Please try again.');
+      setDeleteError(error.message || 'Something went wrong while deleting your account. Please try again.');
       setIsDeleting(false);
     }
   };

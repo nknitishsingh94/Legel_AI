@@ -51,6 +51,24 @@ try {
   console.error("Initialization Error:", error);
 }
 
+// ---- Supabase Admin Client (for user deletion) ----
+let supabaseAdmin = null;
+try {
+  const { createClient } = require('@supabase/supabase-js');
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    supabaseAdmin = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+    console.log('✅ Supabase Admin client initialized.');
+  } else {
+    console.warn('⚠️ SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing. Account deletion will not work.');
+  }
+} catch (e) {
+  console.error('Supabase Admin init error:', e);
+}
+
 // Modify Root to show error if any
 app.get('/', (req, res) => {
   if (initError) {
@@ -333,6 +351,63 @@ app.get('/api/dashboard/live-stats', (req, res) => {
     hours_saved: 0,
     cpu_usage: 0,
   });
+});
+
+// ---- Delete Account (Permanent) ----
+app.delete('/api/account/delete', async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ detail: 'userId is required.' });
+  }
+
+  if (!supabaseAdmin) {
+    return res.status(500).json({ detail: 'Supabase Admin is not configured. Cannot delete account.' });
+  }
+
+  try {
+    // Step 1: Get all user's chats
+    const { data: userChats } = await supabaseAdmin
+      .from('chats')
+      .select('id')
+      .eq('user_id', userId);
+
+    // Step 2: Delete all messages from user's chats
+    if (userChats && userChats.length > 0) {
+      const chatIds = userChats.map(c => c.id);
+      for (const chatId of chatIds) {
+        await supabaseAdmin.from('messages').delete().eq('chat_id', chatId);
+      }
+    }
+
+    // Step 3: Delete all user's chats
+    await supabaseAdmin.from('chats').delete().eq('user_id', userId);
+
+    // Step 4: Delete documents (if table exists)
+    try {
+      await supabaseAdmin.from('documents').delete().eq('user_id', userId);
+    } catch (e) { /* table may not exist */ }
+
+    // Step 5: Delete agreements (if table exists)
+    try {
+      await supabaseAdmin.from('agreements').delete().eq('user_id', userId);
+    } catch (e) { /* table may not exist */ }
+
+    // Step 6: Delete user from Supabase Auth (permanent)
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (deleteError) {
+      console.error('Supabase Auth delete error:', deleteError);
+      return res.status(500).json({ detail: 'Failed to delete user from auth: ' + deleteError.message });
+    }
+
+    console.log(`✅ User ${userId} permanently deleted.`);
+    res.json({ success: true, message: 'Account and all data permanently deleted.' });
+
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ detail: 'Failed to delete account: ' + (error.message || 'Unknown error') });
+  }
 });
 
 // ---- Start Server ----
