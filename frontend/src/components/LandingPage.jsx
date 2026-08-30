@@ -65,7 +65,7 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
           Wakalat AI is an advanced operating system for legal professionals. Draft court-ready documents, analyze contracts, and find precedents in seconds.
         </p>
         <div className="hero-buttons">
-          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={onGetStarted}>
+          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%', maxWidth: '300px', margin: '0 auto' }} onClick={onGetStarted}>
             Get Started for Free <ChevronRight size={20} />
           </button>
         </div>
