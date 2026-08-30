@@ -2840,5 +2840,23 @@ body {
   .mobile-dropdown-menu a:hover {
     background: #f1f5f9;
   }
+
+  .login-box {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    min-height: 100vh !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  .login-form-pane {
+    padding: 1rem !important;
+  }
+
+  .login-form-inner {
+    padding: 1rem !important;
+  }
 }
 

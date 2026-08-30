@@ -117,9 +117,9 @@ const Login = ({ onLogin, onBack, initialViewMode = 'login' }) => {
 
   return (
     <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#2B2D31' }} className="animate-fade-in">
-      <div style={{ display: 'flex', width: '75vw', height: '80vh', maxWidth: '1200px', maxHeight: '800px', minHeight: '600px', background: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+      <div className="login-box" style={{ display: 'flex', width: '75vw', height: '80vh', maxWidth: '1200px', maxHeight: '800px', minHeight: '600px', background: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
         {/* Left Pane - Image/Gradient */}
-      <div style={{ 
+      <div className="hide-on-mobile" style={{ 
         flex: 1, 
         background: 'linear-gradient(135deg, #052e16 0%, #065f46 100%)', 
         position: 'relative', 
@@ -139,12 +139,12 @@ const Login = ({ onLogin, onBack, initialViewMode = 'login' }) => {
       </div>
 
       {/* Right Pane - Form */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflowY: 'auto', padding: '2rem 0' }}>
+      <div className="login-form-pane" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflowY: 'auto', padding: '2rem 0' }}>
         <button onClick={onBack} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontWeight: 600 }}>
           &larr; Back
         </button>
         
-        <div style={{ width: '100%', maxWidth: '420px', padding: '2rem' }}>
+        <div className="login-form-inner" style={{ width: '100%', maxWidth: '420px', padding: '2rem' }}>
           <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <div className="sidebar-logo" style={{ justifyContent: 'center', marginBottom: '1.5rem' }}>
               <Scale size={32} color="#111827" />
