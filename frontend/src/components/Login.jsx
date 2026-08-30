@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Scale, Loader2 } from 'lucide-react';
 import { supabase } from '../supabase';
 
-const Login = ({ onLogin, onBack }) => {
+const Login = ({ onLogin, onBack, initialViewMode = 'login' }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [viewMode, setViewMode] = useState('login'); // 'login', 'signup', 'forgot'
+  const [viewMode, setViewMode] = useState(initialViewMode); // 'login', 'signup', 'forgot', 'update-password'
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -81,6 +81,34 @@ const Login = ({ onLogin, onBack }) => {
     }
   };
 
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if (!password) {
+      setErrorMsg('Please enter a new password');
+      return;
+    }
+    
+    setIsLoading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) {
+        setErrorMsg(error.message);
+      } else {
+        setSuccessMsg('Password updated successfully! Logging you in...');
+        setTimeout(() => {
+          onLogin();
+        }, 1500);
+      }
+    } catch (err) {
+      setErrorMsg(`Unexpected Error: ${err.message || 'Check console'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -123,14 +151,14 @@ const Login = ({ onLogin, onBack }) => {
               <div style={{ fontSize: '1.5rem', color: '#111827', letterSpacing: '0.1em', fontWeight: 800 }}>WAKALAT<span style={{ color: '#a3a3a3', fontWeight: 400 }}>AI</span></div>
             </div>
             <h2 style={{ color: '#111827', fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-              {viewMode === 'login' ? 'Welcome Back' : viewMode === 'signup' ? 'Create Account' : 'Reset Password'}
+              {viewMode === 'login' ? 'Welcome Back' : viewMode === 'signup' ? 'Create Account' : viewMode === 'update-password' ? 'Set New Password' : 'Reset Password'}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-              {viewMode === 'login' ? 'Sign in to access your workspace' : viewMode === 'signup' ? 'Sign up to start your free trial' : 'Enter your email to receive a reset link'}
+              {viewMode === 'login' ? 'Sign in to access your workspace' : viewMode === 'signup' ? 'Sign up to start your free trial' : viewMode === 'update-password' ? 'Enter your new password below' : 'Enter your email to receive a reset link'}
             </p>
           </div>
 
-          {viewMode !== 'forgot' && (
+          {viewMode !== 'forgot' && viewMode !== 'update-password' && (
             <>
               <button className="login-google-btn" onClick={handleGoogleLogin}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
@@ -150,7 +178,7 @@ const Login = ({ onLogin, onBack }) => {
             </>
           )}
 
-          <form onSubmit={viewMode === 'forgot' ? handleResetPassword : handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <form onSubmit={viewMode === 'forgot' ? handleResetPassword : viewMode === 'update-password' ? handleUpdatePassword : handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {viewMode === 'signup' && (
               <div>
                 <input 
@@ -164,16 +192,18 @@ const Login = ({ onLogin, onBack }) => {
               </div>
             )}
             
-            <div>
-              <input 
-                type="email" 
-                placeholder="Email address"  
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={{ width: '100%', padding: '0.875rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.95rem', background: '#f8fafc', outline: 'none' }}
-              />
-            </div>
+            {viewMode !== 'update-password' && (
+              <div>
+                <input 
+                  type="email" 
+                  placeholder="Email address"  
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '0.875rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '0.95rem', background: '#f8fafc', outline: 'none' }}
+                />
+              </div>
+            )}
             
             {viewMode !== 'forgot' && (
               <div>
@@ -210,9 +240,13 @@ const Login = ({ onLogin, onBack }) => {
               </div>
             )}
 
-            <button type="submit" className="login-btn-submit" disabled={isLoading} style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: viewMode === 'forgot' ? '1rem' : '0' }}>
-              {isLoading && <Loader2 size={18} className="animate-spin" />}
-              {viewMode === 'login' ? 'Sign In' : viewMode === 'signup' ? 'Sign Up' : 'Send Reset Link'}
+            <button 
+              type="submit" 
+              className="btn-primary" 
+              disabled={isLoading}
+              style={{ padding: '0.875rem', fontSize: '1rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              {isLoading ? <Loader2 className="spinner" size={20} /> : viewMode === 'login' ? 'Sign In' : viewMode === 'signup' ? 'Create Account' : viewMode === 'update-password' ? 'Update Password' : 'Send Reset Link'}
             </button>
             
             {viewMode === 'forgot' ? (

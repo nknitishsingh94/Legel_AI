@@ -49,11 +49,13 @@ function App() {
           setView('app');
         }
 
-        supabase.auth.onAuthStateChange((_event, session) => {
-          if (session) {
+        supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'PASSWORD_RECOVERY') {
+            setView('update-password');
+          } else if (session) {
             setUser(session.user);
             setIsLoggedIn(true);
-            setView('app');
+            setView(prev => prev === 'update-password' ? 'update-password' : 'app');
           } else {
             setUser(null);
             setIsLoggedIn(false);
@@ -160,6 +162,7 @@ function App() {
   if (view === 'terms') return <TermsOfService onBack={() => setView('landing')} onGetStarted={handleGetStarted} onNavigate={setView} />;
   if (view === 'refund') return <RefundPolicy onBack={() => setView('landing')} onGetStarted={handleGetStarted} onNavigate={setView} />;
   if (view === 'login') return <Login onLogin={handleLogin} onBack={() => setView('landing')} />;
+  if (view === 'update-password') return <Login onLogin={handleLogin} onBack={() => setView('landing')} initialViewMode="update-password" />;
 
   return (
     <DashboardLayout 
