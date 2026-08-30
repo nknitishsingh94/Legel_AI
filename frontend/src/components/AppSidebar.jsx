@@ -7,7 +7,6 @@ import { supabase } from '../supabase';
 import './AppSidebar.css';
 
 const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelectChat, onDeleteChat, onNewChat, user, usageCount = 0 }) => {
-  const [openCases, setOpenCases] = useState(true);
   const [openChats, setOpenChats] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
@@ -103,24 +102,6 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
       </nav>
 
       <div className="sidebar-scrollable">
-        {/* Cases Section */}
-        <div className="sidebar-section">
-          <div className="section-header" onClick={() => setOpenCases(!openCases)}>
-            <span>Cases</span>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <ChevronDown size={14} className={`chevron ${openCases ? 'open' : ''}`} />
-              <button className="icon-btn-small" onClick={(e) => { e.stopPropagation(); }}><Plus size={14} /></button>
-            </div>
-          </div>
-          {openCases && (
-            <div className="section-content">
-              <button className="new-case-btn">
-                <Plus size={14} /> New case
-              </button>
-            </div>
-          )}
-        </div>
-
         {/* Chats Section */}
         <div className="sidebar-section">
           <div className="section-header" onClick={() => setOpenChats(!openChats)}>
