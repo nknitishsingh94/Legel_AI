@@ -41,12 +41,15 @@ const Login = ({ onLogin, onBack }) => {
       }
 
       if (error) {
-        setErrorMsg(error.message);
+        setErrorMsg(`Signup Error: ${error.message}`);
+      } else if (data.user && !data.session && !isLoginMode) {
+        setErrorMsg("Account created! Please check your email for the confirmation link. (Or turn off 'Confirm email' in Supabase settings).");
       } else if (data.user) {
         onLogin();
       }
     } catch (err) {
-      setErrorMsg("An unexpected error occurred.");
+      console.error(err);
+      setErrorMsg(`Unexpected Error: ${err.message || 'Check console'}`);
     } finally {
       setIsLoading(false);
     }
