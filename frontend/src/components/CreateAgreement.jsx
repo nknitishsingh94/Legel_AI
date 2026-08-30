@@ -42,7 +42,7 @@ const CreateAgreement = ({ user, onNavigate }) => {
       const data = await response.json();
       setGeneratedDoc(data.draft);
     } catch (error) {
-      setGeneratedDoc(`Error: ${error.message}\n\n(Tip: If you see a 429 or quota error, your OpenAI API key is correct, but your OpenAI account needs billing/credits added at platform.openai.com)`);
+      setGeneratedDoc(`Error: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }
