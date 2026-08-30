@@ -67,11 +67,10 @@ try {
   console.error(e);
 }
 
-// Initialize LLM (will fail gracefully if no API key is provided)
 const initializeLLM = () => {
   if (process.env.GEMINI_API_KEY && typeof ChatGoogleGenerativeAI !== 'undefined') {
     return new ChatGoogleGenerativeAI({
-      modelName: "gemini-1.5-flash",
+      model: "gemini-1.5-flash",
       temperature: 0.2,
       apiKey: process.env.GEMINI_API_KEY
     });
