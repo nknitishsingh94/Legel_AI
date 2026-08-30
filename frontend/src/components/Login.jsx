@@ -37,13 +37,26 @@ const Login = ({ onLogin, onBack, initialViewMode = 'login' }) => {
             }
           }
         }));
+
+        // Supabase returns a user but no identities if the email already exists
+        if (data?.user?.identities && data.user.identities.length === 0) {
+          error = { message: "An account with this email already exists. Please log in." };
+          data = null;
+        } else if (data?.user && !data?.session) {
+          // If email confirmation is off but session is still null, try logging in explicitly
+          const loginResponse = await supabase.auth.signInWithPassword({ email, password });
+          if (loginResponse.data?.session) {
+            data = loginResponse.data;
+            error = loginResponse.error;
+          }
+        }
       }
 
       if (error) {
         setErrorMsg(error.message);
-      } else if (data.user && !data.session && viewMode === 'signup') {
+      } else if (data?.user && !data?.session && viewMode === 'signup') {
         setSuccessMsg("Account created! Please check your email for the confirmation link.");
-      } else if (data.user) {
+      } else if (data?.user) {
         onLogin();
       }
     } catch (err) {
