@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabase';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+
 const FeedbackModal = ({ isOpen, onClose, user }) => {
   const [rating, setRating] = useState(5);
   const [name, setName] = useState('');
   const [text, setText] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
@@ -42,6 +45,26 @@ const FeedbackModal = ({ isOpen, onClose, user }) => {
       setError(err.message || 'Failed to submit feedback.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleAIGenerate = async () => {
+    setIsGenerating(true);
+    setError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/feedback/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      if (data.text) {
+        setText(data.text);
+      }
+    } catch (err) {
+      console.error("AI Generation Error:", err);
+      setError("Failed to generate AI feedback. Please try again.");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -99,7 +122,17 @@ const FeedbackModal = ({ isOpen, onClose, user }) => {
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Your Feedback</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <label style={{ fontSize: '0.9rem', fontWeight: 600, color: '#374151', margin: 0 }}>Your Feedback</label>
+                  <button 
+                    type="button" 
+                    onClick={handleAIGenerate} 
+                    disabled={isGenerating}
+                    style={{ background: 'var(--accent-main)', color: '#fff', border: 'none', borderRadius: '20px', padding: '0.25rem 0.75rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', opacity: isGenerating ? 0.7 : 1 }}
+                  >
+                    {isGenerating ? 'Generating...' : '✨ AI Support'}
+                  </button>
+                </div>
                 <textarea 
                   required 
                   rows="4" 

@@ -99,6 +99,23 @@ const initializeLLM = () => {
 // In-memory conversation store (for demo purposes)
 const chatMemory = {};
 
+// ---- Generate AI Feedback ----
+app.post('/api/feedback/generate', async (req, res) => {
+  const llm = initializeLLM();
+  if (!llm) {
+    return res.json({ text: "Wakalat AI has been incredibly helpful for my legal practice. The case summaries and drafting tools save me hours of research every week. Highly recommended for any advocate!" });
+  }
+
+  try {
+    const prompt = "You are a user of a Legal AI platform called 'Wakalat AI'. Write a short, professional, and positive 2-3 sentence testimonial feedback about how it helps with legal research, drafting, and case summaries. Only return the feedback text, without any quotes or extra formatting.";
+    const response = await llm.invoke([new HumanMessage(prompt)]);
+    return res.json({ text: response.content });
+  } catch (error) {
+    console.error("AI Feedback Generation Error:", error);
+    return res.json({ text: "Wakalat AI has been a game-changer for my daily legal research and drafting work." });
+  }
+});
+
 // ---- Chat ----
 app.post('/api/chat/message', async (req, res) => {
   const { message, sessionId = 'default', language = 'en', userId } = req.body;
