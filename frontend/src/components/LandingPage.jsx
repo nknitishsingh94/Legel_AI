@@ -1,5 +1,5 @@
-import React from 'react';
-import { Scale, ChevronRight, ChevronDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { Scale, ChevronRight, ChevronDown, Menu, X } from 'lucide-react';
 import InteractiveFeatures from './InteractiveFeatures';
 import UseCasesSection from './UseCasesSection';
 import ArticlesSection from './ArticlesSection';
@@ -10,6 +10,8 @@ import CTALeadForm from './CTALeadForm';
 import Footer from './Footer';
 
 const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="landing-page animate-fade-in">
       {/* Navbar */}
@@ -18,16 +20,36 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
           <Scale size={28} color="var(--accent-gold)" />
           <div style={{ color: '#111827' }}>Wakalat<span style={{ color: 'var(--accent-gold)' }}>AI</span></div>
         </div>
-        <div className="nav-links" style={{ background: 'transparent', padding: 0, gap: '2rem' }}>
+        
+        {/* Desktop Links */}
+        <div className={`nav-links ${isMobileMenuOpen ? 'mobile-open' : 'hide-on-mobile'}`} style={{ background: 'transparent', padding: 0, gap: '2rem' }}>
           <MegaMenu title="Products" />
           <a href="#learn" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Learn <ChevronDown size={14} /></a>
           <a href="#pricing" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Pricing</a>
-          <a href="#" onClick={(e) => { e.preventDefault(); onAboutClick(); }} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>About Us <ChevronDown size={14} /></a>
+          <a href="#" onClick={(e) => { e.preventDefault(); onAboutClick(); setIsMobileMenuOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>About Us <ChevronDown size={14} /></a>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+        
+        <div className="nav-actions hide-on-mobile" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <button className="nav-btn-signin" onClick={onLoginClick}>Sign In</button>
           <button className="nav-btn-getstarted" onClick={onGetStarted}>Get Started</button>
         </div>
+
+        {/* Mobile Menu Toggle */}
+        <button className="mobile-menu-toggle show-on-mobile" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px' }}>
+          {isMobileMenuOpen ? <X size={24} color="#111827" /> : <Menu size={24} color="#111827" />}
+        </button>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="mobile-dropdown-menu show-on-mobile">
+            <a href="#learn" onClick={() => setIsMobileMenuOpen(false)}>Learn</a>
+            <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)}>Pricing</a>
+            <a href="#" onClick={(e) => { e.preventDefault(); onAboutClick(); setIsMobileMenuOpen(false); }}>About Us</a>
+            <hr style={{ margin: '16px 0', border: 'none', borderTop: '1px solid #e2e8f0' }} />
+            <button className="nav-btn-signin" style={{ width: '100%', marginBottom: '12px' }} onClick={onLoginClick}>Sign In</button>
+            <button className="nav-btn-getstarted" style={{ width: '100%' }} onClick={onGetStarted}>Get Started</button>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
