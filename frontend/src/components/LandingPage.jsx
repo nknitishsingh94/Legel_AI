@@ -85,7 +85,7 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
       <PricingSection onGetStarted={onGetStarted} />
 
       {/* CTA Section */}
-      <CTALeadForm />
+      <CTALeadForm onGetStarted={onGetStarted} />
 
       {/* Articles / Insights */}
       <ArticlesSection />

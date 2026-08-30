@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle2 } from 'lucide-react';
 
-const CTALeadForm = () => {
+const CTALeadForm = ({ onGetStarted }) => {
   return (
     <>
       <style>{`
@@ -211,7 +211,7 @@ const CTALeadForm = () => {
             </li>
           </ul>
           
-          <button className="cta-btn-dark">Start Free Trial</button>
+          <button className="cta-btn-dark" onClick={onGetStarted}>Start Free Trial</button>
         </div>
 
         {/* Right Side: Form Card */}
@@ -257,7 +257,7 @@ const CTALeadForm = () => {
                 </select>
               </div>
               
-              <button type="button" className="cta-submit-btn">Schedule Demo</button>
+              <button type="button" className="cta-submit-btn" onClick={() => alert('Thank you for your interest! Our team will contact you shortly to schedule a demo.')}>Schedule Demo</button>
             </form>
           </div>
         </div>
