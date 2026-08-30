@@ -74,7 +74,7 @@ const DashboardOverview = ({ usageCount = 0 }) => {
       </div>
 
       {/* Usage Progress Card */}
-      <div className="dash-card" style={{ marginBottom: '1.5rem', background: isLimitReached ? '#fef2f2' : '#f8fafc', border: isLimitReached ? '1px solid #fca5a5' : '1px solid var(--border-color)' }}>
+      <div className="dash-card" style={{ maxWidth: '500px', marginBottom: '1.5rem', background: isLimitReached ? '#fef2f2' : '#f8fafc', border: isLimitReached ? '1px solid #fca5a5' : '1px solid var(--border-color)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: isLimitReached ? '#ef4444' : 'var(--text-primary)' }}>
             <Zap size={18} color={isLimitReached ? '#ef4444' : 'var(--accent-main)'} />
