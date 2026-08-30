@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   MoreVertical, TrendingUp, Calendar, 
-  FileText, Activity, Zap
+  FileText, Activity, Zap, MessageSquareHeart
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
   Tooltip, ResponsiveContainer 
 } from 'recharts';
+import { supabase } from '../supabase';
+import FeedbackModal from './FeedbackModal';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
-const DashboardOverview = ({ usageCount = 0 }) => {
+const DashboardOverview = ({ usageCount = 0, user }) => {
   const limit = 50;
   const usagePercentage = Math.min((usageCount / limit) * 100, 100);
   const isLimitReached = usageCount >= limit;
@@ -23,6 +25,29 @@ const DashboardOverview = ({ usageCount = 0 }) => {
   });
   const [chartData, setChartData] = useState([]);
   const [isLive, setIsLive] = useState(false);
+  
+  const [hasSubmittedFeedback, setHasSubmittedFeedback] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+  useEffect(() => {
+    const checkFeedback = async () => {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from('feedbacks')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+        
+        if (data && data.length > 0) {
+          setHasSubmittedFeedback(true);
+        }
+      } catch (err) {
+        console.error("Error checking feedback:", err);
+      }
+    };
+    checkFeedback();
+  }, [user, showFeedbackModal]);
   const intervalRef = useRef(null);
 
   // Fetch live stats from backend
@@ -73,33 +98,64 @@ const DashboardOverview = ({ usageCount = 0 }) => {
         </div>
       </div>
 
-      {/* Usage Progress Card */}
-      <div className="dash-card" style={{ maxWidth: '500px', marginBottom: '1.5rem', background: isLimitReached ? '#fef2f2' : '#f8fafc', border: isLimitReached ? '1px solid #fca5a5' : '1px solid var(--border-color)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: isLimitReached ? '#ef4444' : 'var(--text-primary)' }}>
-            <Zap size={18} color={isLimitReached ? '#ef4444' : 'var(--accent-main)'} />
-            Free Plan Usage (AI Queries)
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        {/* Usage Progress Card */}
+        <div className="dash-card" style={{ background: isLimitReached ? '#fef2f2' : '#f8fafc', border: isLimitReached ? '1px solid #fca5a5' : '1px solid var(--border-color)', margin: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: isLimitReached ? '#ef4444' : 'var(--text-primary)' }}>
+              <Zap size={18} color={isLimitReached ? '#ef4444' : 'var(--accent-main)'} />
+              Free Plan Usage (AI Queries)
+            </div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: isLimitReached ? '#ef4444' : 'var(--text-secondary)' }}>
+              {usageCount} / {limit} Used
+            </div>
           </div>
-          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: isLimitReached ? '#ef4444' : 'var(--text-secondary)' }}>
-            {usageCount} / {limit} Used
+          <div style={{ width: '100%', height: '8px', background: isLimitReached ? '#fecaca' : '#e2e8f0', borderRadius: '4px', overflow: 'hidden', marginBottom: '1rem' }}>
+            <div style={{ 
+              width: `${usagePercentage}%`, 
+              height: '100%', 
+              background: isLimitReached ? '#ef4444' : 'var(--accent-main)',
+              transition: 'width 0.5s ease'
+            }}></div>
           </div>
+          {usageCount >= 45 && !isLimitReached && (
+            <div style={{ fontSize: '0.875rem', color: '#f59e0b', fontWeight: 500, marginBottom: '1rem' }}>
+              ⚠️ You are approaching your monthly limit. Only {limit - usageCount} queries remaining.
+            </div>
+          )}
+          <button onClick={() => alert("Upgrade features coming soon!")} className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', width: '100%' }}>
+            Upgrade to Pro
+          </button>
         </div>
-        <div style={{ width: '100%', height: '8px', background: isLimitReached ? '#fecaca' : '#e2e8f0', borderRadius: '4px', overflow: 'hidden', marginBottom: '1rem' }}>
-          <div style={{ 
-            width: `${usagePercentage}%`, 
-            height: '100%', 
-            background: isLimitReached ? '#ef4444' : 'var(--accent-main)',
-            transition: 'width 0.5s ease'
-          }}></div>
-        </div>
-        {usageCount >= 45 && !isLimitReached && (
-          <div style={{ fontSize: '0.875rem', color: '#f59e0b', fontWeight: 500, marginBottom: '1rem' }}>
-            ⚠️ You are approaching your monthly limit. Only {limit - usageCount} queries remaining.
+
+        {/* Feedback Card */}
+        <div className="dash-card" style={{ background: 'linear-gradient(145deg, #10b981 0%, #059669 100%)', border: 'none', margin: 0, color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, marginBottom: '0.5rem', fontSize: '1.1rem' }}>
+              <MessageSquareHeart size={20} color="#fff" />
+              Your Voice Matters
+            </div>
+            <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+              Help us improve Wakalat AI. Share your experience and let us know how we can make your practice even better.
+            </p>
           </div>
-        )}
-        <button onClick={() => alert("Upgrade features coming soon!")} className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
-          Upgrade to Pro
-        </button>
+          
+          {hasSubmittedFeedback ? (
+            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 600 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Thanks for your feedback!
+            </div>
+          ) : (
+            <button 
+              onClick={() => setShowFeedbackModal(true)} 
+              style={{ background: '#fff', color: '#059669', padding: '0.75rem 1rem', fontSize: '0.875rem', fontWeight: 700, borderRadius: '8px', border: 'none', cursor: 'pointer', transition: 'all 0.2s ease', width: '100%' }}
+            >
+              Submit Feedback
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Metrics Row - Real-time */}
@@ -217,6 +273,11 @@ const DashboardOverview = ({ usageCount = 0 }) => {
         </div>
       </div>
 
+      <FeedbackModal 
+        isOpen={showFeedbackModal} 
+        onClose={() => setShowFeedbackModal(false)} 
+        user={user} 
+      />
     </div>
   );
 };

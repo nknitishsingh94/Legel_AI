@@ -1,18 +1,48 @@
 import React, { useState } from 'react';
+import { supabase } from '../supabase';
 
-const FeedbackModal = ({ isOpen, onClose }) => {
+const FeedbackModal = ({ isOpen, onClose, user }) => {
   const [rating, setRating] = useState(5);
+  const [name, setName] = useState('');
+  const [text, setText] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-    }, 2000);
+    if (!user) {
+      setError('You must be logged in to submit feedback.');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const { error: submitError } = await supabase.from('feedbacks').insert([{
+        user_id: user.id,
+        name: name,
+        role: user?.user_metadata?.full_name ? 'User' : 'Advocate', // simplified role logic
+        text: text,
+        rating: rating
+      }]);
+
+      if (submitError) throw submitError;
+
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        onClose();
+      }, 2000);
+    } catch (err) {
+      console.error("Error submitting feedback:", err);
+      setError(err.message || 'Failed to submit feedback.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -58,16 +88,32 @@ const FeedbackModal = ({ isOpen, onClose }) => {
 
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Your Name / Firm</label>
-                <input required type="text" placeholder="e.g. Adv. Rajesh Kumar" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '1rem', boxSizing: 'border-box' }} />
+                <input 
+                  required 
+                  type="text" 
+                  placeholder="e.g. Adv. Rajesh Kumar" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '1rem', boxSizing: 'border-box' }} 
+                />
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>Your Feedback</label>
-                <textarea required rows="4" placeholder="How has Wakalat AI helped your practice?" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '1rem', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical' }}></textarea>
+                <textarea 
+                  required 
+                  rows="4" 
+                  placeholder="How has Wakalat AI helped your practice?" 
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '1rem', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical' }}
+                ></textarea>
               </div>
 
-              <button type="submit" style={{ width: '100%', background: 'var(--accent-main)', color: 'white', padding: '1rem', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
-                Submit Review
+              {error && <div style={{ color: '#ef4444', marginBottom: '1rem', fontSize: '0.9rem' }}>{error}</div>}
+
+              <button type="submit" disabled={isSubmitting} style={{ width: '100%', background: 'var(--accent-main)', color: 'white', padding: '1rem', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', opacity: isSubmitting ? 0.7 : 1 }}>
+                {isSubmitting ? 'Submitting...' : 'Submit Review'}
               </button>
             </form>
           </>

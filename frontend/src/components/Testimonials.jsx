@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabase';
 
-const testimonialsData = [
+const fallbackTestimonials = [
   {
     id: 1,
     name: "Adv. Rajesh Kumar",
@@ -18,25 +19,13 @@ const testimonialsData = [
     name: "Aman Gupta",
     role: "Managing Director, LegalTech Solutions",
     text: "The Case File Analysis feature is the best I've seen in the Indian market. Uploading a 200-page SLP and getting the key arguments extracted instantly saves us days of work."
-  },
-  {
-    id: 4,
-    name: "Adv. Neha Singh",
-    role: "Corporate Counsel",
-    text: "I was skeptical at first, but the depth of the judgement search and the way it understands context rather than just keywords is phenomenal. Highly recommended."
-  },
-  {
-    id: 5,
-    name: "Vikram Desai",
-    role: "Partner, Desai & Associates",
-    text: "Wakalat AI is exactly what the Indian legal ecosystem needed. The platform is intuitive, and the continuous updates to the database give us a huge competitive edge."
   }
 ];
 
 const TestimonialCard = ({ testimonial }) => (
   <div className="testimonial-card">
     <div style={{ display: 'flex', gap: '2px', marginBottom: '1rem' }}>
-      {[...Array(5)].map((_, i) => (
+      {[...Array(testimonial.rating || 5)].map((_, i) => (
         <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="#FFC107" stroke="#FFC107" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
         </svg>
@@ -53,6 +42,35 @@ const TestimonialCard = ({ testimonial }) => (
 );
 
 const Testimonials = () => {
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('feedbacks')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          setFeedbacks(data);
+        } else {
+          setFeedbacks(fallbackTestimonials);
+        }
+      } catch (err) {
+        console.error("Error fetching feedbacks:", err);
+        setFeedbacks(fallbackTestimonials);
+      }
+    };
+    
+    fetchFeedbacks();
+  }, []);
+
+  const displayData = feedbacks.length > 0 ? feedbacks : fallbackTestimonials;
+
   return (
     <section id="testimonials" style={{ padding: '6rem 0', background: '#f8fafc', overflow: 'hidden', flexShrink: 0 }}>
       <div style={{ textAlign: 'center', marginBottom: '4rem', padding: '0 2rem' }}>
@@ -63,9 +81,8 @@ const Testimonials = () => {
 
       <div className="marquee-container">
         <div className="marquee-content">
-          {/* We render the list twice to create the seamless infinite scroll effect */}
-          {testimonialsData.map(t => <TestimonialCard key={t.id} testimonial={t} />)}
-          {testimonialsData.map(t => <TestimonialCard key={`${t.id}-duplicate`} testimonial={t} />)}
+          {displayData.map(t => <TestimonialCard key={t.id} testimonial={t} />)}
+          {displayData.map(t => <TestimonialCard key={`${t.id}-duplicate`} testimonial={t} />)}
         </div>
       </div>
     </section>
