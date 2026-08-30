@@ -56,7 +56,7 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
             chat_id: currentChatId,
             sender: 'ai',
             text: fullText
-          }]).then();
+          }]).then().catch(err => console.error("Error saving AI message:", err));
         }
       }
     }, 12);
@@ -83,8 +83,12 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
       
       const newChatObj = { id: currentChatId, user_id: user.id, title: newTitle };
       
-      // Save chat to Supabase
-      await supabase.from('chats').insert([newChatObj]);
+      // Save chat to Supabase safely
+      try {
+        await supabase.from('chats').insert([newChatObj]);
+      } catch (err) {
+        console.error("Error creating chat:", err);
+      }
       
       setChats(prev => [newChatObj, ...prev]);
       setActiveChatId(currentChatId);
@@ -94,13 +98,19 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
       setMessages(prev => [...prev, userMsg]);
     }
 
-    // Save User message to Supabase
-    await supabase.from('messages').insert([{
-      id: userMsgId,
-      chat_id: currentChatId,
-      sender: 'user',
-      text: textToSend
-    }]);
+    // Save User message to Supabase safely
+    if (user) {
+      try {
+        await supabase.from('messages').insert([{
+          id: userMsgId,
+          chat_id: currentChatId,
+          sender: 'user',
+          text: textToSend
+        }]);
+      } catch (err) {
+        console.error("Error saving user message:", err);
+      }
+    }
 
     const isVip = user?.email === 'nknitishsingh94@gmail.com';
 
