@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   MoreVertical, TrendingUp, Calendar, 
-  FileText, Activity
+  FileText, Activity, Zap
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
@@ -10,7 +10,11 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
-const DashboardOverview = () => {
+const DashboardOverview = ({ usageCount = 0 }) => {
+  const limit = 50;
+  const usagePercentage = Math.min((usageCount / limit) * 100, 100);
+  const isLimitReached = usageCount >= limit;
+
   const [stats, setStats] = useState({
     active_cases: 0,
     docs_analyzed: 0,
@@ -67,6 +71,35 @@ const DashboardOverview = () => {
           }} />
           {isLive ? 'Live' : 'Offline'}
         </div>
+      </div>
+
+      {/* Usage Progress Card */}
+      <div className="dash-card" style={{ marginBottom: '1.5rem', background: isLimitReached ? '#fef2f2' : '#f8fafc', border: isLimitReached ? '1px solid #fca5a5' : '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: isLimitReached ? '#ef4444' : 'var(--text-primary)' }}>
+            <Zap size={18} color={isLimitReached ? '#ef4444' : 'var(--accent-main)'} />
+            Free Plan Usage (AI Queries)
+          </div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: isLimitReached ? '#ef4444' : 'var(--text-secondary)' }}>
+            {usageCount} / {limit} Used
+          </div>
+        </div>
+        <div style={{ width: '100%', height: '8px', background: isLimitReached ? '#fecaca' : '#e2e8f0', borderRadius: '4px', overflow: 'hidden', marginBottom: '1rem' }}>
+          <div style={{ 
+            width: `${usagePercentage}%`, 
+            height: '100%', 
+            background: isLimitReached ? '#ef4444' : 'var(--accent-main)',
+            transition: 'width 0.5s ease'
+          }}></div>
+        </div>
+        {usageCount >= 45 && !isLimitReached && (
+          <div style={{ fontSize: '0.875rem', color: '#f59e0b', fontWeight: 500, marginBottom: '1rem' }}>
+            ⚠️ You are approaching your monthly limit. Only {limit - usageCount} queries remaining.
+          </div>
+        )}
+        <button onClick={() => alert("Upgrade features coming soon!")} className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>
+          Upgrade to Pro
+        </button>
       </div>
 
       {/* Metrics Row - Real-time */}

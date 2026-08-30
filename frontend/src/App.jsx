@@ -194,7 +194,7 @@ function App() {
       ) : dashboardView === 'settings' ? (
         <Settings user={user} />
       ) : (
-        <DashboardOverview />
+        <DashboardOverview usageCount={usageCount} />
       )}
     </DashboardLayout>
   )

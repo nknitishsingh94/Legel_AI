@@ -102,7 +102,18 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
       text: textToSend
     }]);
 
-    if (setUsageCount) setUsageCount(prev => prev + 1);
+    if (setUsageCount) {
+      setUsageCount(prev => {
+        const newCount = prev + 1;
+        if (newCount === 45) {
+          // Wrap in timeout so it doesn't block the UI update immediately
+          setTimeout(() => {
+            alert("⚠️ Warning: You have used 45 queries. Only 5 left in your free plan. Please consider upgrading to Pro to avoid interruption.");
+          }, 500);
+        }
+        return newCount;
+      });
+    }
 
     setInput('');
     setIsLoading(true);
