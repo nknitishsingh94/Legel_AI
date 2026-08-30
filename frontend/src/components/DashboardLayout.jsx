@@ -48,7 +48,11 @@ const DashboardLayout = ({
       </div>
 
       <div className="dashboard-main">
-        <AppNavbar onToggleSidebar={toggleSidebar} />
+        <AppNavbar 
+          onToggleSidebar={toggleSidebar} 
+          user={user} 
+          onNavigate={onNavigate} 
+        />
         <div className="dashboard-content">
           {children}
         </div>
