@@ -1,13 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, User, Menu, Settings, CreditCard, LogOut, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Search, Bell, User, Menu, Settings, CreditCard, LogOut, CheckCircle, AlertTriangle, FileText, MessageSquare, LayoutDashboard } from 'lucide-react';
 import { supabase } from '../supabase';
 
-const AppNavbar = ({ onToggleSidebar, user, onNavigate }) => {
+const AppNavbar = ({ onToggleSidebar, user, onNavigate, chats = [], onSelectChat }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   
   const notifRef = useRef(null);
   const profileRef = useRef(null);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -17,6 +20,9 @@ const AppNavbar = ({ onToggleSidebar, user, onNavigate }) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setShowProfileMenu(false);
       }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -25,15 +31,69 @@ const AppNavbar = ({ onToggleSidebar, user, onNavigate }) => {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
+
+  const pages = [
+    { title: 'Dashboard Overview', id: 'overview', type: 'page', icon: LayoutDashboard },
+    { title: 'Account Settings', id: 'settings', type: 'page', icon: Settings },
+    { title: 'Create Agreement', id: 'create', type: 'page', icon: FileText }
+  ];
+
+  const searchResults = searchTerm ? [
+    ...pages.filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase())),
+    ...chats.filter(c => c.title.toLowerCase().includes(searchTerm.toLowerCase())).map(c => ({ ...c, type: 'chat' }))
+  ].slice(0, 5) : [];
+
+  const handleSelectResult = (result) => {
+    if (result.type === 'page') {
+      if(onNavigate) onNavigate(result.id);
+    } else {
+      if(onSelectChat) onSelectChat(result.id);
+    }
+    setSearchTerm('');
+    setIsSearchFocused(false);
+  };
+
   return (
     <header className="app-navbar">
       <div className="app-navbar-left">
         <button className="mobile-menu-btn" onClick={onToggleSidebar}>
           <Menu size={24} />
         </button>
-        <div className="app-navbar-search hide-on-mobile">
+        <div className="app-navbar-search hide-on-mobile" ref={searchRef} style={{ position: 'relative' }}>
           <Search size={18} color="var(--text-secondary)" />
-          <input type="text" placeholder="Search chats, documents, or settings..." />
+          <input 
+            type="text" 
+            placeholder="Search chats, documents, or settings..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+          />
+          
+          {isSearchFocused && searchTerm && (
+            <div className="dropdown-menu animate-fade-in" style={{ position: 'absolute', top: '120%', left: '0', width: '100%', minWidth: '350px', background: '#fff', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)', border: '1px solid var(--border-color)', zIndex: 100, overflow: 'hidden' }}>
+              {searchResults.length > 0 ? (
+                <div>
+                  {searchResults.map((result, i) => (
+                    <button 
+                      key={`${result.type}-${result.id}-${i}`} 
+                      onClick={() => handleSelectResult(result)}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'transparent', border: 'none', borderBottom: i < searchResults.length - 1 ? '1px solid var(--border-color)' : 'none', cursor: 'pointer', textAlign: 'left', color: '#374151', fontSize: '0.9rem' }}
+                      onMouseOver={e => e.currentTarget.style.background = '#f3f4f6'} 
+                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      {result.type === 'page' ? <result.icon size={16} /> : <MessageSquare size={16} />}
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{result.title}</span>
+                      <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: 'var(--text-secondary)', background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>{result.type === 'page' ? 'Page' : 'Chat'}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                  No results found for "{searchTerm}"
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

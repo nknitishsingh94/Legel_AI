@@ -52,6 +52,8 @@ const DashboardLayout = ({
           onToggleSidebar={toggleSidebar} 
           user={user} 
           onNavigate={onNavigate} 
+          chats={chats}
+          onSelectChat={onSelectChat}
         />
         <div className="dashboard-content">
           {children}

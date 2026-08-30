@@ -10,6 +10,7 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
   const [openCases, setOpenCases] = useState(true);
   const [openChats, setOpenChats] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -38,7 +39,12 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
       {/* Search */}
       <div className="sidebar-search">
         <Search size={16} className="search-icon" />
-        <input type="text" placeholder="Search" />
+        <input 
+          type="text" 
+          placeholder="Search chats..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
         <span className="shortcut">Ctrl+K</span>
       </div>
 
@@ -103,8 +109,10 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
             <div className="section-content chat-list">
               {chats.length === 0 ? (
                 <div style={{ padding: '8px 12px', fontSize: '13px', color: 'var(--text-tertiary)' }}>No recent chats</div>
+              ) : chats.filter(chat => chat.title.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 ? (
+                <div style={{ padding: '8px 12px', fontSize: '13px', color: 'var(--text-tertiary)' }}>No matching chats</div>
               ) : (
-                chats.map(chat => (
+                chats.filter(chat => chat.title.toLowerCase().includes(searchTerm.toLowerCase())).map(chat => (
                   <div 
                     key={chat.id} 
                     className={`chat-history-item ${activeChatId === chat.id ? 'active' : ''}`}
