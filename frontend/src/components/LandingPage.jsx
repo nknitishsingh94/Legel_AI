@@ -55,7 +55,10 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
       {/* Hero Section */}
       <header className="hero-section animate-slide-up" style={{ animationDelay: '0.1s' }}>
         <h1 style={{ fontSize: '4.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: '1.5rem', textAlign: 'center' }}>
-          <span style={{ fontWeight: 800, color: '#1f2937', display: 'block' }}>The Future of <span style={{ fontWeight: 400, color: '#1f2937' }}>Legal</span></span>
+          <span style={{ fontWeight: 800, display: 'block' }}>
+            <span style={{ background: 'linear-gradient(135deg, #4f46e5, #0ea5e9)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>The Future of</span> 
+            <span style={{ fontWeight: 400, color: '#1f2937' }}> Legal</span>
+          </span>
           <span style={{ fontWeight: 400, color: '#4b5563', display: 'block' }}>Research is Here.</span>
         </h1>
         <p className="hero-subtitle">
