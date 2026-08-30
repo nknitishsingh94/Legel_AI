@@ -1,7 +1,58 @@
-import React from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, Loader2 } from 'lucide-react';
+import { supabase } from '../supabase';
 
 const CTALeadForm = ({ onGetStarted }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    firmName: '',
+    phone: '',
+    countryCode: '🇮🇳 +91',
+    teamSize: '1-5'
+  });
+  const [status, setStatus] = useState('idle'); // idle, loading, success, error
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email) {
+      setErrorMessage('Name and Email are required.');
+      return;
+    }
+    
+    setStatus('loading');
+    setErrorMessage('');
+    
+    try {
+      const { error } = await supabase
+        .from('demo_requests')
+        .insert([
+          { 
+            name: formData.name, 
+            email: formData.email, 
+            firm_name: formData.firmName,
+            phone: `${formData.countryCode} ${formData.phone}`,
+            team_size: formData.teamSize
+          }
+        ]);
+        
+      if (error) throw error;
+      
+      setStatus('success');
+      setFormData({ name: '', email: '', firmName: '', phone: '', countryCode: '🇮🇳 +91', teamSize: '1-5' });
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      setStatus('error');
+      setErrorMessage('Failed to submit request. Please ensure the "demo_requests" table exists in Supabase.');
+    }
+  };
+
   return (
     <>
       <style>{`
@@ -219,37 +270,37 @@ const CTALeadForm = ({ onGetStarted }) => {
           <div className="cta-lead-form-card">
             <h3>Get Started Today</h3>
             
-            <form className="cta-form">
+            <form className="cta-form" onSubmit={handleSubmit}>
               <div className="cta-form-group">
                 <label>Your Name</label>
-                <input type="text" placeholder="John Smith" />
+                <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="John Smith" required />
               </div>
               
               <div className="cta-form-group">
                 <label>Work Email</label>
-                <input type="email" placeholder="john@yourlawfirm.com" />
+                <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="john@yourlawfirm.com" required />
               </div>
               
               <div className="cta-form-group">
                 <label>Law Firm Name</label>
-                <input type="text" placeholder="Your law firm name" />
+                <input type="text" name="firmName" value={formData.firmName} onChange={handleInputChange} placeholder="Your law firm name" />
               </div>
               
               <div className="cta-form-group">
                 <label>Phone Number</label>
                 <div className="cta-phone-input-group">
-                  <select className="cta-country-code" style={{ width: '120px' }}>
+                  <select name="countryCode" value={formData.countryCode} onChange={handleInputChange} className="cta-country-code" style={{ width: '120px' }}>
                     <option>🇮🇳 +91</option>
                     <option>🇺🇸 +1</option>
                     <option>🇬🇧 +44</option>
                   </select>
-                  <input type="tel" placeholder="555-123-4567" />
+                  <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="555-123-4567" />
                 </div>
               </div>
               
               <div className="cta-form-group">
                 <label>Team Size</label>
-                <select className="cta-team-size-select">
+                <select name="teamSize" value={formData.teamSize} onChange={handleInputChange} className="cta-team-size-select">
                   <option>1-5</option>
                   <option>6-20</option>
                   <option>21-50</option>
@@ -257,7 +308,12 @@ const CTALeadForm = ({ onGetStarted }) => {
                 </select>
               </div>
               
-              <button type="button" className="cta-submit-btn" onClick={() => alert('Thank you for your interest! Our team will contact you shortly to schedule a demo.')}>Schedule Demo</button>
+              {status === 'error' && <div style={{ color: '#ef4444', fontSize: '0.875rem', marginBottom: '1rem' }}>{errorMessage}</div>}
+              {status === 'success' && <div style={{ color: '#10b981', fontSize: '0.875rem', marginBottom: '1rem', padding: '0.5rem', background: '#d1fae5', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle2 size={16} /> Thank you! Our team will contact you shortly.</div>}
+              
+              <button type="submit" className="cta-submit-btn" disabled={status === 'loading'}>
+                {status === 'loading' ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}><Loader2 size={18} className="animate-spin" /> Submitting...</span> : 'Schedule Demo'}
+              </button>
             </form>
           </div>
         </div>
