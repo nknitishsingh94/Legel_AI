@@ -277,6 +277,63 @@ app.post('/api/document/generate', async (req, res) => {
   }
 });
 
+app.post('/api/document/compare', (req, res, next) => {
+  if (!upload) return res.status(500).json({ detail: 'Multer failed to initialize' });
+  upload.fields([{ name: 'file1', maxCount: 1 }, { name: 'file2', maxCount: 1 }])(req, res, next);
+}, async (req, res) => {
+  try {
+    if (!req.files || !req.files.file1 || !req.files.file2) {
+      return res.status(400).json({ detail: 'Please provide both file1 and file2' });
+    }
+
+    const file1 = req.files.file1[0];
+    const file2 = req.files.file2[0];
+
+    // Helper to extract text
+    const extractText = async (file) => {
+      if (file.mimetype === 'application/pdf') {
+        const data = await pdfParse(file.buffer);
+        return data.text;
+      }
+      return file.buffer.toString('utf8'); // fallback for text/csv
+    };
+
+    const text1 = await extractText(file1);
+    const text2 = await extractText(file2);
+
+    const llm = initializeLLM();
+    if (!llm) {
+      return res.json({ 
+        comparison: `**Simulated Comparison (API Key Missing)**\n\n* **File 1:** ${file1.originalname}\n* **File 2:** ${file2.originalname}\n\nSince the AI API key is missing, no real comparison could be generated. Both documents have been received successfully, but please add an API key (OpenAI/Gemini) to see the actual legal differences and missing clauses.` 
+      });
+    }
+
+    const prompt = `You are a highly experienced legal assistant. Compare the following two documents.
+    
+Document 1 (${file1.originalname}):
+"""
+${text1.substring(0, 4000)}...
+"""
+
+Document 2 (${file2.originalname}):
+"""
+${text2.substring(0, 4000)}...
+"""
+
+Please provide a detailed, well-formatted Markdown response that highlights:
+1. The primary differences between the two documents.
+2. Any critical clauses present in Document 1 but missing in Document 2.
+3. Potential legal risks or anomalies found in Document 2 compared to Document 1.`;
+
+    const response = await llm.invoke([new HumanMessage(prompt)]);
+    res.json({ comparison: response.content });
+
+  } catch (error) {
+    console.error("Error comparing documents:", error);
+    res.status(500).json({ detail: error.message || 'Failed to compare documents' });
+  }
+});
+
 // ---- Dashboard Live Stats ----
 app.get('/api/dashboard/live-stats', (req, res) => {
   if (initError) {
