@@ -30,7 +30,7 @@
 }
 
 .pricing-title {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 1.5rem;
@@ -184,7 +184,7 @@
 }
 
 .price-amount {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 800;
   color: var(--text-primary);
   letter-spacing: -0.03em;
@@ -341,5 +341,20 @@
   }
   .popular-card:hover {
     transform: translateY(-8px);
+  }
+}
+
+@media (max-width: 768px) {
+  .pricing-title {
+    font-size: 2.2rem;
+  }
+  .price-amount {
+    font-size: 2.2rem;
+  }
+  .pricing-section {
+    padding: 4rem 1rem;
+  }
+  .pricing-card {
+    padding: 1.5rem;
   }
 }
