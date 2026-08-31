@@ -57,7 +57,7 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
         <h1 className="hero-title" style={{ textAlign: 'center' }}>
           <span style={{ fontWeight: 800, display: 'block' }}>
             <span style={{ background: 'linear-gradient(135deg, #059669, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>The Future of</span> 
-            <span style={{ fontWeight: 400, color: '#1f2937' }}> Legal</span>
+            <span style={{ fontWeight: 400, color: '#4b5563' }}> Legal</span>
           </span>
           <span style={{ fontWeight: 400, color: '#4b5563', display: 'block' }}>Research is Here.</span>
         </h1>
