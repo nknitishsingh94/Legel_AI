@@ -54,12 +54,12 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
 
       {/* Hero Section */}
       <header className="hero-section animate-slide-up" style={{ animationDelay: '0.1s' }}>
-        <h1 className="hero-title" style={{ textAlign: 'center', lineHeight: '1.4' }}>
-          <span style={{ fontWeight: 800, display: 'block', paddingBottom: '0.2rem' }}>
+        <h1 className="hero-title" style={{ textAlign: 'center', lineHeight: '1.15' }}>
+          <span style={{ fontWeight: 800, display: 'block' }}>
             <span style={{ background: 'linear-gradient(135deg, #059669, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'inline-block' }}>The Future of</span> 
             <span style={{ fontWeight: 400, color: 'black' }}> Legal</span>
           </span>
-          <span style={{ fontWeight: 400, color: 'black', display: 'block', paddingTop: '0.2rem' }}>Research is Here.</span>
+          <span style={{ fontWeight: 400, color: 'black', display: 'block' }}>Research is Here.</span>
         </h1>
         <p className="hero-subtitle">
           Wakalat AI is an advanced operating system for legal professionals. Draft court-ready documents, analyze contracts, and find precedents in seconds.
