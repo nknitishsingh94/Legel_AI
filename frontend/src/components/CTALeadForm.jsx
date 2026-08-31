@@ -237,6 +237,20 @@ const CTALeadForm = ({ onGetStarted }) => {
             justify-content: center;
           }
         }
+        
+        @media (max-width: 768px) {
+          .cta-lead-title {
+            font-size: 2.2rem;
+            text-align: center;
+          }
+          .cta-lead-desc {
+            text-align: center;
+            margin: 0 auto 2rem auto;
+          }
+          .cta-lead-content {
+            align-items: center;
+          }
+        }
       `}</style>
     <section className="cta-lead-section">
       <div className="cta-lead-container">

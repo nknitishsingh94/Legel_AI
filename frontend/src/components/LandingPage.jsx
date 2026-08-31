@@ -54,7 +54,7 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
 
       {/* Hero Section */}
       <header className="hero-section animate-slide-up" style={{ animationDelay: '0.1s' }}>
-        <h1 style={{ fontSize: '4.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: '1.5rem', textAlign: 'center' }}>
+        <h1 className="hero-title" style={{ textAlign: 'center' }}>
           <span style={{ fontWeight: 800, display: 'block' }}>
             <span style={{ background: 'linear-gradient(135deg, #059669, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>The Future of</span> 
             <span style={{ fontWeight: 400, color: '#1f2937' }}> Legal</span>

@@ -2750,6 +2750,13 @@ body {
   display: none;
 }
 
+.hero-title {
+  font-size: 3.5rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+}
+
 @media (max-width: 768px) {
   .hide-on-mobile {
     display: none !important;
@@ -2770,7 +2777,7 @@ body {
   }
 
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2.2rem !important;
   }
 
   .hero-subtitle {
