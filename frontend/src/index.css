@@ -474,7 +474,7 @@ body {
 }
 
 .cta-heading {
-  font-size: 3.5rem;
+  font-size: 2.5rem;
   font-weight: 600;
   line-height: 1.1;
   color: #ffffff;
@@ -2865,5 +2865,15 @@ body {
   .login-form-inner {
     padding: 1rem !important;
   }
-}
 
+  .cta-heading {
+    font-size: 2rem !important;
+    text-align: center;
+  }
+  
+  .footer-cta {
+    flex-direction: column !important;
+    gap: 2rem !important;
+    text-align: center !important;
+  }
+}
