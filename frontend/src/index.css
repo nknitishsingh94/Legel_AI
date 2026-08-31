@@ -383,13 +383,6 @@ body {
   letter-spacing: -0.02em;
 }
 
-.hero-title span {
-  background: linear-gradient(135deg, var(--accent-main), #34d399);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
-}
-
 .hero-subtitle {
   font-size: 1.25rem;
   color: var(--text-secondary);
