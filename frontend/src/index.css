@@ -806,7 +806,7 @@ body {
 }
 
 .content-title {
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 1.25rem;
@@ -815,9 +815,9 @@ body {
 }
 
 .content-desc {
-  font-size: 1.8rem;
+  font-size: 1.125rem;
   color: #6b7280; /* Lighter gray to match screenshot */
-  line-height: 1.4;
+  line-height: 1.6;
   margin-bottom: 2.5rem;
   font-weight: 500;
   letter-spacing: -0.01em;
