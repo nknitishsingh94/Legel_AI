@@ -74,7 +74,7 @@ const Testimonials = () => {
   return (
     <section id="testimonials" style={{ padding: '6rem 0', background: '#f8fafc', overflow: 'hidden', flexShrink: 0 }}>
       <div style={{ textAlign: 'center', marginBottom: '4rem', padding: '0 2rem' }}>
-        <h2 style={{ fontSize: '3.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', margin: 0 }}>
+        <h2 style={{ fontSize: '2.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', margin: 0 }}>
           <span style={{ fontWeight: 800, color: '#1f2937', display: 'block' }}>Customer <span style={{ fontWeight: 400, color: '#1f2937' }}>Stories.</span></span>
         </h2>
       </div>

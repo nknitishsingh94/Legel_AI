@@ -146,7 +146,7 @@ const Login = ({ onLogin, onBack, initialViewMode = 'login' }) => {
         <div style={{ width: '150%', height: '150%', background: 'radial-gradient(circle, rgba(16,185,129,0.2) 0%, transparent 60%)', position: 'absolute', top: '-25%', left: '-25%' }}></div>
         <div style={{ color: '#fff', textAlign: 'center', zIndex: 1, padding: '2rem' }}>
            <Scale size={80} color="rgba(255,255,255,0.8)" style={{ marginBottom: '1rem' }} />
-           <h1 style={{ fontSize: '3rem', fontWeight: 700, marginBottom: '1rem', letterSpacing: '-0.02em' }}>Wakalat AI</h1>
+           <h1 style={{ fontSize: '2.25rem', fontWeight: 700, marginBottom: '1rem', letterSpacing: '-0.02em' }}>Wakalat AI</h1>
            <p style={{ fontSize: '1.25rem', opacity: 0.8 }}>The next generation of legal research.</p>
         </div>
       </div>

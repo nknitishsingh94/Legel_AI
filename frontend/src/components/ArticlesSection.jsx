@@ -32,7 +32,7 @@ const ArticlesSection = () => {
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4rem' }}>
           <div>
-            <h2 style={{ fontSize: '3.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', margin: 0 }}>
+            <h2 style={{ fontSize: '2.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', margin: 0 }}>
               <span style={{ fontWeight: 800, color: '#1f2937', display: 'block' }}>Featured <span style={{ fontWeight: 400, color: '#1f2937' }}>Case</span></span>
               <span style={{ fontWeight: 400, color: 'var(--accent-main)', display: 'block' }}>Studies.</span>
             </h2>

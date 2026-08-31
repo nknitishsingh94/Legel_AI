@@ -81,7 +81,7 @@ const CTALeadForm = ({ onGetStarted }) => {
         }
 
         .cta-lead-title {
-          font-size: 3.5rem;
+          font-size: 2.5rem;
           line-height: 1.1;
           color: #111827;
           margin-bottom: 1.5rem;
@@ -231,7 +231,7 @@ const CTALeadForm = ({ onGetStarted }) => {
             gap: 3rem;
           }
           .cta-lead-title {
-            font-size: 2.8rem;
+            font-size: 2.2rem;
           }
           .cta-lead-form-wrapper {
             justify-content: center;

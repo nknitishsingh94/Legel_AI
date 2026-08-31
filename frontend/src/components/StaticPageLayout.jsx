@@ -20,7 +20,7 @@ const StaticPageLayout = ({ title, children, onBack, onGetStarted, onNavigate })
 
       {/* Main Content Wrapper */}
       <div style={{ flex: 1, width: '100%', maxWidth: '800px', margin: '0 auto', padding: '4rem 2rem' }}>
-        <h1 style={{ fontSize: '3.5rem', fontWeight: 800, color: '#111827', marginBottom: '2.5rem', letterSpacing: '-0.02em' }}>{title}</h1>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#111827', marginBottom: '2.5rem', letterSpacing: '-0.02em' }}>{title}</h1>
         <div style={{ fontSize: '1.1rem', color: 'var(--text-primary)', lineHeight: 1.8 }}>
           {children}
         </div>

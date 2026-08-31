@@ -76,7 +76,7 @@ const InteractiveFeatures = () => {
         {/* Left Column: Heading & Tabs */}
         <div className="tabs-column">
           <div style={{ marginBottom: '3rem' }}>
-            <h2 style={{ fontSize: '3.5rem', lineHeight: 1.1, letterSpacing: '-0.03em' }}>
+            <h2 style={{ fontSize: '2.5rem', lineHeight: 1.1, letterSpacing: '-0.03em' }}>
               <span style={{ fontWeight: 800, color: '#1f2937', display: 'block' }}>One platform <span style={{ fontWeight: 400, color: '#1f2937' }}>to</span></span>
               <span style={{ fontWeight: 400, color: '#4b5563', display: 'block' }}>incorporate all your</span>
               <span style={{ fontWeight: 400, color: '#4b5563', display: 'block' }}>legal needs</span>

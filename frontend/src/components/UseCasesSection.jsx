@@ -54,7 +54,7 @@ const UseCasesSection = () => {
       <div className="use-cases-container">
         
         <div className="use-cases-header">
-          <h2 style={{ fontSize: '3.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: '1.5rem', color: '#ffffff' }}>
+          <h2 style={{ fontSize: '2.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', marginBottom: '1.5rem', color: '#ffffff' }}>
             <span style={{ fontWeight: 800, display: 'block' }}>Specialized Solutions <span style={{ fontWeight: 400 }}>for</span></span>
             <span style={{ fontWeight: 400, display: 'block', color: 'var(--accent-gold)' }}>Every Practice Area.</span>
           </h2>
