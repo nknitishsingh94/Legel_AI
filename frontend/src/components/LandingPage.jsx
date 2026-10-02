@@ -8,6 +8,7 @@ import Testimonials from './Testimonials';
 import MegaMenu from './MegaMenu';
 import CTALeadForm from './CTALeadForm';
 import Footer from './Footer';
+import AnimatedActivityList from './AnimatedActivityList';
 
 const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -53,21 +54,30 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
       </nav>
 
       {/* Hero Section */}
-      <header className="hero-section animate-slide-up" style={{ animationDelay: '0.1s' }}>
-        <h1 className="hero-title" style={{ textAlign: 'center', lineHeight: '1.2' }}>
-          <span style={{ fontWeight: 800, display: 'block' }}>
-            <span style={{ background: 'linear-gradient(135deg, #059669, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'inline-block' }}>The Future of</span> 
-            <span style={{ fontWeight: 800, color: 'black' }}> Legal</span>
-          </span>
-          <span style={{ fontWeight: 800, color: 'black', display: 'block' }}>Research is Here.</span>
-        </h1>
-        <p className="hero-subtitle">
-          Wakalat AI is an advanced operating system for legal professionals. Draft court-ready documents, analyze contracts, and find precedents in seconds.
-        </p>
-        <div className="hero-buttons">
-          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%', maxWidth: '300px', margin: '0 auto' }} onClick={onGetStarted}>
-            Get Started for Free <ChevronRight size={20} />
-          </button>
+      <header className="hero-section animate-slide-up" style={{ animationDelay: '0.1s', padding: '6rem 2rem 4rem 2rem' }}>
+        <div className="hero-layout-grid">
+          <div>
+            <h1 className="hero-title" style={{ textAlign: 'left', lineHeight: '1.2' }}>
+              <span style={{ fontWeight: 800, display: 'block' }}>
+                <span style={{ background: 'linear-gradient(135deg, #059669, #34d399)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'inline-block' }}>The Future of</span> 
+                <span style={{ fontWeight: 800, color: 'black' }}> Legal</span>
+              </span>
+              <span style={{ fontWeight: 800, color: 'black', display: 'block' }}>Research is Here.</span>
+            </h1>
+            <p className="hero-subtitle" style={{ textAlign: 'left', margin: '1.5rem 0 2rem 0' }}>
+              Wakalat AI is an advanced operating system for legal professionals. Draft court-ready documents, analyze contracts, and find precedents in seconds.
+            </p>
+            <div className="hero-buttons" style={{ justifyContent: 'flex-start' }}>
+              <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', width: '100%', maxWidth: '280px' }} onClick={onGetStarted}>
+                Get Started for Free <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Animated Activity List Demo */}
+          <div>
+            <AnimatedActivityList />
+          </div>
         </div>
       </header>
 
