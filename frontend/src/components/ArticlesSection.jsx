@@ -7,21 +7,21 @@ const articles = [
     category: "Constitutional Law",
     title: "Kesavananda Bharati v. State of Kerala: The Basic Structure Doctrine",
     readTime: "Landmark Judgement",
-    image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800",
   },
   {
     id: 2,
     category: "Fundamental Rights",
     title: "Maneka Gandhi v. Union of India: Expansion of Article 21",
     readTime: "Supreme Court Analysis",
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1436450412740-6b988f486c6b?auto=format&fit=crop&q=80&w=800",
   },
   {
     id: 3,
     category: "Corporate Law",
     title: "Tata Consultancy Services v. Cyrus Mistry: Oppression and Mismanagement",
     readTime: "Tribunal Case Study",
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=800",
+    image: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&q=80&w=800",
   }
 ];
 

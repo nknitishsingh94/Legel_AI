@@ -8,7 +8,7 @@ const Footer = ({ onGetStarted, onNavigate, hideCTA = false }) => {
         <>
           <div className="footer-cta">
             <h2 className="cta-heading">Make Legal Work Simpler<br/>with Wakalat AI</h2>
-            <button className="cta-button" onClick={onGetStarted}>Sign In</button>
+            <button className="cta-button" onClick={onGetStarted}>Get Started Free</button>
           </div>
           <div className="footer-divider"></div>
         </>
@@ -37,7 +37,7 @@ const Footer = ({ onGetStarted, onNavigate, hideCTA = false }) => {
 
         {/* Column 2: Company */}
         <div className="footer-col">
-          <h4 className="col-heading">COMPANY</h4>
+          <h3 className="col-heading">COMPANY</h3>
           <a href="#pricing" className="footer-link">Pricing & Plans</a>
           <a href="#" className="footer-link" onClick={(e) => { e.preventDefault(); onNavigate('about'); }}>About us</a>
           <a href="#" className="footer-link" onClick={(e) => { e.preventDefault(); onNavigate('careers'); }}>Careers</a>
@@ -45,7 +45,7 @@ const Footer = ({ onGetStarted, onNavigate, hideCTA = false }) => {
 
         {/* Column 3: Resources */}
         <div className="footer-col">
-          <h4 className="col-heading">RESOURCES</h4>
+          <h3 className="col-heading">RESOURCES</h3>
           <a href="#" className="footer-link" onClick={(e) => { e.preventDefault(); onNavigate('academy'); }}>Wakalat AI academy</a>
           <a href="#" className="footer-link" onClick={(e) => { e.preventDefault(); onNavigate('blog'); }}>Blog</a>
           <a href="#" className="footer-link" onClick={(e) => { e.preventDefault(); onNavigate('faq'); }}>FAQ</a>
@@ -53,7 +53,7 @@ const Footer = ({ onGetStarted, onNavigate, hideCTA = false }) => {
 
         {/* Column 4: Legal */}
         <div className="footer-col">
-          <h4 className="col-heading">LEGAL</h4>
+          <h3 className="col-heading">LEGAL</h3>
           <a href="#" className="footer-link" onClick={(e) => { e.preventDefault(); onNavigate('privacy'); }}>Privacy Policy</a>
           <a href="#" className="footer-link" onClick={(e) => { e.preventDefault(); onNavigate('terms'); }}>Terms of Service</a>
           <a href="#" className="footer-link" onClick={(e) => { e.preventDefault(); onNavigate('refund'); }}>Refund Policy</a>
@@ -61,7 +61,7 @@ const Footer = ({ onGetStarted, onNavigate, hideCTA = false }) => {
 
         {/* Column 5: Contact Us */}
         <div className="footer-col contact-col">
-          <h4 className="col-heading">CONTACT US</h4>
+          <h3 className="col-heading">CONTACT US</h3>
           <div className="contact-item">
             <Mail size={16} />
             <a href="mailto:contact@wakalatai.com" className="footer-link">contact@wakalatai.com</a>

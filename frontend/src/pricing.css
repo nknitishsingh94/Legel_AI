@@ -140,7 +140,10 @@
 }
 
 .pricing-card-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
 }
 
 .plan-icon-wrapper {
@@ -170,11 +173,12 @@
   font-size: 0.9rem;
   color: var(--text-secondary);
   line-height: 1.5;
-  height: 40px;
+  min-height: 48px;
 }
 
 .pricing-price-box {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  min-height: 76px;
 }
 
 .price-amount-wrapper {
@@ -204,23 +208,25 @@
 
 .pricing-action-btn {
   width: 100%;
-  padding: 1rem;
-  border-radius: 8px;
+  padding: 0.9rem 1.25rem;
+  border-radius: var(--radius-md, 8px);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-bottom: 2rem;
-  border: none;
+  margin-bottom: 1.75rem;
+  margin-top: auto; /* Pushes button to standard horizontal baseline */
+  border: 1.5px solid transparent;
 }
 
 .pricing-action-btn.primary {
-  background: #b8860b;
+  background: var(--text-accent, #b8860b);
   color: #ffffff;
+  border-color: transparent;
 }
 
 .pricing-action-btn.primary:hover {
@@ -229,24 +235,24 @@
   box-shadow: 0 4px 14px rgba(184, 134, 11, 0.3);
 }
 
-.pricing-action-btn.secondary {
+.pricing-action-btn.secondary, .pricing-action-btn.outline {
   background: #ffffff;
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  color: var(--text-primary, #0f172a);
+  border: 1.5px solid #cbd5e1;
 }
 
-.pricing-action-btn.secondary:hover {
+.pricing-action-btn.secondary:hover, .pricing-action-btn.outline:hover {
   background: #f8fafc;
-  border-color: #cbd5e1;
+  border-color: #0f172a;
 }
 
 .pricing-action-btn.dark {
-  background: var(--text-primary);
+  background: var(--text-primary, #0f172a);
   color: #ffffff;
 }
 
 .pricing-action-btn.dark:hover {
-  background: #0f172a;
+  background: #1e293b;
 }
 
 .pricing-features-divider {

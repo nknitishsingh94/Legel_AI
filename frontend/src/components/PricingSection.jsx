@@ -15,7 +15,7 @@ const PricingSection = ({ onGetStarted }) => {
       yearlyPrice: '₹0',
       period: 'Forever free',
       buttonText: 'Get Started Free',
-      buttonVariant: 'secondary',
+      buttonVariant: 'outline',
       popular: false,
       features: [
         '50 AI legal research queries/month',
@@ -24,12 +24,6 @@ const PricingSection = ({ onGetStarted }) => {
         'Standard response speed',
         'Single user access',
         'Community support'
-      ],
-      unavailableFeatures: [
-        'High Court & Tribunals full database',
-        'Unlimited AI document analysis',
-        'BNS / BNSS reform mapping',
-        'Priority 24/7 legal tech support'
       ]
     },
     {
@@ -51,11 +45,8 @@ const PricingSection = ({ onGetStarted }) => {
         'Full BNS, BNSS & BSA 2023 converter tool',
         'Draft court-ready petitions, SLPs, bail drafts',
         'Upload & analyze up to 500-page PDF case files',
-        'Instant citation cross-verification',
-        'Export to Word & formatted PDF',
-        'Priority email & chat support'
-      ],
-      unavailableFeatures: []
+        'Export to Word & formatted PDF with priority support'
+      ]
     },
     {
       id: 'enterprise',
@@ -66,19 +57,16 @@ const PricingSection = ({ onGetStarted }) => {
       yearlyPrice: 'Custom',
       period: 'tailored to your team',
       buttonText: 'Contact Sales',
-      buttonVariant: 'dark',
+      buttonVariant: 'outline',
       popular: false,
       features: [
         'Everything in Advocate Pro',
         'Unlimited multi-seat team collaboration',
         'Custom private legal database integration',
         'Firm-specific templates & style enforcement',
-        'Dedicated account manager & legal trainer',
         'Enterprise SSO & custom roles / permissions',
-        'SOC2 Type II & Bank-grade data encryption',
-        '99.9% SLA & API integrations'
-      ],
-      unavailableFeatures: []
+        'SOC2 Type II & 99.9% SLA uptime'
+      ]
     }
   ];
 
@@ -169,13 +157,6 @@ const PricingSection = ({ onGetStarted }) => {
                       <div className="feature-check-icon">
                         <Check size={14} />
                       </div>
-                      <span>{feat}</span>
-                    </div>
-                  ))}
-
-                  {plan.unavailableFeatures.map((feat, idx) => (
-                    <div key={idx} className="feature-item excluded">
-                      <div className="feature-cross-icon">✕</div>
                       <span>{feat}</span>
                     </div>
                   ))}

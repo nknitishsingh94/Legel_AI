@@ -123,23 +123,22 @@ const CTALeadForm = ({ onGetStarted }) => {
           box-shadow: 0 0 0 4px rgba(209, 160, 132, 0.2);
         }
 
-        .cta-btn-dark {
-          background: #0f172a;
-          color: #ffffff;
-          border: none;
+        .cta-btn-outline {
+          background: transparent;
+          color: #0f172a;
+          border: 2px solid #0f172a;
           padding: 0.8rem 2rem;
           font-size: 1rem;
           font-weight: 700;
           border-radius: 8px;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
         }
 
-        .cta-btn-dark:hover {
-          background: #1e293b;
+        .cta-btn-outline:hover {
+          background: #0f172a;
+          color: #ffffff;
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(15, 23, 42, 0.3);
         }
 
         .cta-lead-form-wrapper {
@@ -194,18 +193,49 @@ const CTALeadForm = ({ onGetStarted }) => {
           color: #111827;
           transition: border-color 0.2s;
           background: #ffffff;
+          box-sizing: border-box;
+        }
+
+        .cta-form-group input::placeholder {
+          color: #94a3b8;
+          opacity: 1;
+          font-weight: 400;
+        }
+
+        .cta-team-size-select {
+          appearance: none;
+          background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 1rem center;
         }
 
         .cta-form-group input:focus, 
         .cta-team-size-select:focus,
         .cta-country-code:focus {
           outline: none;
-          border-color: #d1a084;
+          border-color: #b8860b;
         }
 
         .cta-phone-input-group {
           display: flex;
-          gap: 0.5rem;
+          gap: 0;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+
+        .cta-phone-input-group .cta-country-code {
+          width: 110px;
+          border: none;
+          border-right: 1px solid #cbd5e1;
+          border-radius: 0;
+          background-color: #f8fafc;
+          appearance: none;
+          padding: 0.75rem 0.5rem 0.75rem 1rem;
+        }
+
+        .cta-phone-input-group input {
+          border: none;
+          border-radius: 0;
+          flex: 1;
         }
 
         .cta-submit-btn {
@@ -267,16 +297,16 @@ const CTALeadForm = ({ onGetStarted }) => {
           
           <ul className="cta-lead-list">
             <li>
-              <div className="gold-dot"></div>
+              <CheckCircle2 size={18} color="#b8860b" style={{ flexShrink: 0 }} />
               <span>AI-powered drafting across Indian laws</span>
             </li>
             <li>
-              <div className="gold-dot"></div>
+              <CheckCircle2 size={18} color="#b8860b" style={{ flexShrink: 0 }} />
               <span>90% faster case preparation with Wakalat AI</span>
             </li>
           </ul>
           
-          <button className="cta-btn-dark" onClick={onGetStarted}>Start Free Trial</button>
+          <button className="cta-btn-outline" onClick={onGetStarted}>Start Free Trial</button>
         </div>
 
         {/* Right Side: Form Card */}
@@ -286,35 +316,35 @@ const CTALeadForm = ({ onGetStarted }) => {
             
             <form className="cta-form" onSubmit={handleSubmit}>
               <div className="cta-form-group">
-                <label>Your Name</label>
-                <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="John Smith" required />
+                <label htmlFor="user-name">Your Name</label>
+                <input id="user-name" type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="John Smith" required />
               </div>
               
               <div className="cta-form-group">
-                <label>Work Email</label>
-                <input type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="john@yourlawfirm.com" required />
+                <label htmlFor="user-email">Work Email</label>
+                <input id="user-email" type="email" name="email" value={formData.email} onChange={handleInputChange} placeholder="john@yourlawfirm.com" required />
               </div>
               
               <div className="cta-form-group">
-                <label>Law Firm Name</label>
-                <input type="text" name="firmName" value={formData.firmName} onChange={handleInputChange} placeholder="Your law firm name" />
+                <label htmlFor="user-firm">Law Firm Name</label>
+                <input id="user-firm" type="text" name="firmName" value={formData.firmName} onChange={handleInputChange} placeholder="Your law firm name" />
               </div>
               
               <div className="cta-form-group">
-                <label>Phone Number</label>
+                <label htmlFor="user-phone">Phone Number</label>
                 <div className="cta-phone-input-group">
-                  <select name="countryCode" value={formData.countryCode} onChange={handleInputChange} className="cta-country-code" style={{ width: '120px' }}>
+                  <select name="countryCode" value={formData.countryCode} onChange={handleInputChange} className="cta-country-code" aria-label="Country code">
                     <option>🇮🇳 +91</option>
                     <option>🇺🇸 +1</option>
                     <option>🇬🇧 +44</option>
                   </select>
-                  <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="555-123-4567" />
+                  <input id="user-phone" type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="555-123-4567" />
                 </div>
               </div>
               
               <div className="cta-form-group">
-                <label>Team Size</label>
-                <select name="teamSize" value={formData.teamSize} onChange={handleInputChange} className="cta-team-size-select">
+                <label htmlFor="user-team">Team Size</label>
+                <select id="user-team" name="teamSize" value={formData.teamSize} onChange={handleInputChange} className="cta-team-size-select">
                   <option>1-5</option>
                   <option>6-20</option>
                   <option>21-50</option>

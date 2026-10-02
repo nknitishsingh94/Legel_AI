@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../supabase';
 
 const fallbackTestimonials = [
@@ -35,7 +36,7 @@ const TestimonialCard = ({ testimonial }) => (
       "{testimonial.text}"
     </p>
     <div>
-      <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0 }}>{testimonial.name}</h4>
+      <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0 }}>{testimonial.name}</h3>
       <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, marginTop: '2px' }}>{testimonial.role}</p>
     </div>
   </div>
@@ -43,6 +44,7 @@ const TestimonialCard = ({ testimonial }) => (
 
 const Testimonials = () => {
   const [feedbacks, setFeedbacks] = useState([]);
+  const [scrollIndex, setScrollIndex] = useState(0);
 
   useEffect(() => {
     const fetchFeedbacks = async () => {
@@ -71,16 +73,47 @@ const Testimonials = () => {
 
   const displayData = feedbacks.length > 0 ? feedbacks : fallbackTestimonials;
 
+  const handlePrev = () => {
+    setScrollIndex(prev => (prev > 0 ? prev - 1 : displayData.length - 1));
+  };
+
+  const handleNext = () => {
+    setScrollIndex(prev => (prev < displayData.length - 1 ? prev + 1 : 0));
+  };
+
   return (
     <section id="testimonials" style={{ padding: '6rem 0', background: '#f8fafc', overflow: 'hidden', flexShrink: 0 }}>
-      <div style={{ textAlign: 'center', marginBottom: '4rem', padding: '0 2rem' }}>
-        <h2 style={{ fontSize: '2.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', margin: 0 }}>
-          <span style={{ fontWeight: 800, color: '#1f2937', display: 'block' }}>Customer <span style={{ fontWeight: 400, color: '#1f2937' }}>Stories.</span></span>
-        </h2>
+      <div style={{ maxWidth: '1200px', margin: '0 auto 3rem auto', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h2 style={{ fontSize: '2.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', margin: 0 }}>
+            <span style={{ fontWeight: 800, color: '#1f2937', display: 'block' }}>Customer <span style={{ fontWeight: 400, color: '#1f2937' }}>Stories.</span></span>
+          </h2>
+          <p style={{ fontSize: '1.1rem', color: '#64748b', marginTop: '0.5rem', margin: 0 }}>
+            Trusted by advocates, corporate legal teams, and law firms across India.
+          </p>
+        </div>
+
+        {/* Interactive Carousel Controls */}
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <button 
+            onClick={handlePrev} 
+            aria-label="Previous testimonial"
+            style={{ width: '44px', height: '44px', borderRadius: '50%', border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s ease' }}
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button 
+            onClick={handleNext} 
+            aria-label="Next testimonial"
+            style={{ width: '44px', height: '44px', borderRadius: '50%', border: '1px solid #cbd5e1', background: '#ffffff', color: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s ease' }}
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
       </div>
 
       <div className="marquee-container">
-        <div className="marquee-content">
+        <div className="marquee-content" style={{ transform: `translateX(-${scrollIndex * 380}px)`, transition: 'transform 0.4s ease' }}>
           {displayData.map(t => <TestimonialCard key={t.id} testimonial={t} />)}
           {displayData.map(t => <TestimonialCard key={`${t.id}-duplicate`} testimonial={t} />)}
         </div>

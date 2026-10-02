@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ArrowRight } from 'lucide-react';
 
 const featuresData = [
   {
@@ -103,7 +104,10 @@ const InteractiveFeatures = () => {
           <div key={activeTab} className="feature-content animate-slide-up">
             <h2 className="content-title">{activeFeature.title}</h2>
             <p className="content-desc">{activeFeature.desc}</p>
-            <a href="#" className="explore-link">Explore more &gt;</a>
+            <a href="#" className="explore-button">
+              <span>Explore feature</span>
+              <ArrowRight size={16} />
+            </a>
           </div>
         </div>
 
