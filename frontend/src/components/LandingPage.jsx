@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Scale, ChevronRight, ChevronDown, Menu, X, Sparkles, Shield, Award } from 'lucide-react';
+import { ChevronRight, ChevronDown, Menu, X, Sparkles } from 'lucide-react';
 import InteractiveFeatures from './InteractiveFeatures';
 import UseCasesSection from './UseCasesSection';
 import ArticlesSection from './ArticlesSection';
@@ -10,54 +10,81 @@ import CTALeadForm from './CTALeadForm';
 import Footer from './Footer';
 import AnimatedActivityList from './AnimatedActivityList';
 import AnimatedBackground from './AnimatedBackground';
-import HazyGradientShowcase from './HazyGradientShowcase';
 
 const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [landingPreset, setLandingPreset] = useState('emerald');
 
   return (
     <div className="landing-page animate-fade-in">
-      {/* Animated Hazy Atmospheric Glowing Canvas Background */}
-      <AnimatedBackground preset={landingPreset} showControls={true} />
+      {/* Slow Color-Shifting Hazy Atmospheric Background */}
+      <AnimatedBackground preset="emerald" showControls={false} />
 
       <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
-        {/* Full Desktop Edge-to-Edge Sticky Glass Navbar */}
+        {/* Modern Sticky Glass Navbar */}
         <nav className="navbar">
           <div className="sidebar-logo" style={{ marginBottom: 0 }}>
-            <img src="/logo.jpg" alt="Wakalat AI Logo" style={{ width: '34px', height: '34px', borderRadius: '8px', objectFit: 'cover', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }} />
-            <div style={{ color: '#0f172a', fontWeight: 800, fontSize: '1.35rem', letterSpacing: '-0.02em' }}>
+            <img 
+              src="/logo.jpg" 
+              alt="Wakalat AI Logo" 
+              style={{ 
+                width: '36px', 
+                height: '36px', 
+                borderRadius: '10px', 
+                objectFit: 'cover', 
+                boxShadow: '0 2px 10px rgba(16, 185, 129, 0.2)' 
+              }} 
+            />
+            <div className="brand-name">
               Wakalat<span style={{ color: '#10b981' }}>AI</span>
             </div>
           </div>
           
-          {/* Desktop Links */}
-          <div className="nav-links hide-on-mobile" style={{ background: 'transparent', padding: 0, gap: '2.2rem' }}>
+          {/* Desktop Navigation Links */}
+          <div className="nav-links hide-on-mobile">
             <MegaMenu title="Products" />
-            <a href="#learn" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Learn <ChevronDown size={14} /></a>
-            <a href="#pricing" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>Pricing</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); onAboutClick(); setIsMobileMenuOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>About Us <ChevronDown size={14} /></a>
+            <a href="#learn" className="nav-item">
+              Learn <ChevronDown size={14} style={{ opacity: 0.7 }} />
+            </a>
+            <a href="#pricing" className="nav-item">
+              Pricing
+            </a>
+            <a href="#" onClick={(e) => { e.preventDefault(); onAboutClick(); }} className="nav-item">
+              About Us <ChevronDown size={14} style={{ opacity: 0.7 }} />
+            </a>
           </div>
           
-          <div className="nav-actions hide-on-mobile" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <button className="nav-btn-signin" onClick={onLoginClick}>Sign In</button>
-            <button className="nav-btn-getstarted" onClick={onGetStarted}>Get Started</button>
+          {/* Action Buttons */}
+          <div className="nav-actions hide-on-mobile">
+            <button className="nav-btn-signin" onClick={onLoginClick}>
+              Sign In
+            </button>
+            <button className="nav-btn-getstarted" onClick={onGetStarted}>
+              Get Started
+            </button>
           </div>
 
           {/* Mobile Menu Toggle */}
-          <button className="mobile-menu-toggle show-on-mobile" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px' }}>
-            {isMobileMenuOpen ? <X size={24} color="#111827" /> : <Menu size={24} color="#111827" />}
+          <button 
+            className="mobile-menu-toggle show-on-mobile" 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+            aria-label="Toggle Navigation Menu"
+          >
+            {isMobileMenuOpen ? <X size={24} color="#0f172a" /> : <Menu size={24} color="#0f172a" />}
           </button>
 
           {/* Mobile Menu Dropdown */}
           {isMobileMenuOpen && (
-            <div className="mobile-dropdown-menu">
+            <div className="mobile-dropdown-menu animate-fade-in">
               <a href="#learn" onClick={() => setIsMobileMenuOpen(false)}>Learn</a>
               <a href="#pricing" onClick={() => setIsMobileMenuOpen(false)}>Pricing</a>
               <a href="#" onClick={(e) => { e.preventDefault(); onAboutClick(); setIsMobileMenuOpen(false); }}>About Us</a>
-              <hr style={{ margin: '16px 0', border: 'none', borderTop: '1px solid #e2e8f0' }} />
-              <button className="nav-btn-signin" style={{ width: '100%', marginBottom: '12px' }} onClick={onLoginClick}>Sign In</button>
-              <button className="nav-btn-getstarted" style={{ width: '100%' }} onClick={onGetStarted}>Get Started</button>
+              <hr style={{ margin: '14px 0', border: 'none', borderTop: '1px solid #e2e8f0' }} />
+              <button className="nav-btn-signin" style={{ width: '100%', marginBottom: '10px' }} onClick={onLoginClick}>
+                Sign In
+              </button>
+              <button className="nav-btn-getstarted" style={{ width: '100%' }} onClick={onGetStarted}>
+                Get Started
+              </button>
             </div>
           )}
         </nav>
@@ -123,11 +150,6 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
           <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
             <InteractiveFeatures />
           </div>
-        </section>
-
-        {/* Hazy Atmospheric Gradient Visual Showcase */}
-        <section className="landing-section-wrapperAlt" style={{ background: 'transparent' }}>
-          <HazyGradientShowcase onSelectTheme={(presetId) => setLandingPreset(presetId)} />
         </section>
 
         {/* Use Cases / Practice Areas */}
