@@ -1,0 +1,246 @@
+/* Hazy Atmospheric Gradient Animation Styles */
+.hazy-gradient-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease-in-out;
+}
+
+.hazy-gradient-canvas {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 120%;
+  height: 120%;
+  transform: scale(1.1);
+  will-change: filter, transform;
+  pointer-events: none;
+}
+
+/* Atmospheric SVG Film Grain Overlay */
+.hazy-grain-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: 2;
+  will-change: opacity;
+}
+
+.hazy-svg-noise {
+  width: 100%;
+  height: 100%;
+  opacity: 0.9;
+}
+
+/* Subtle Center & Vignette Light Glow */
+.hazy-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  transition: background 0.8s ease;
+}
+
+.vignette-light {
+  background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.45) 0%, rgba(248, 250, 252, 0) 75%);
+}
+
+.vignette-dark {
+  background: radial-gradient(circle at 50% 30%, rgba(15, 23, 42, 0.2) 0%, rgba(9, 13, 22, 0.75) 85%);
+}
+
+/* Floating Interactive Control Widget */
+.hazy-controls-bar {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  pointer-events: auto;
+  font-family: inherit;
+}
+
+.hazy-controls-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 9999px;
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 0 15px rgba(16, 185, 129, 0.15);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hazy-controls-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -4px rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.hazy-controls-dropdown {
+  position: absolute;
+  bottom: 54px;
+  right: 0;
+  width: 330px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.15), 0 0 1px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: #1e293b;
+  animation: hazySlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes hazySlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hazy-controls-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 10px;
+}
+
+.sparkle-icon {
+  color: #10b981;
+}
+
+.hazy-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hazy-control-group label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hazy-palette-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.hazy-palette-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hazy-palette-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.hazy-palette-card.active {
+  background: #ffffff;
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.palette-swatch-row {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+}
+
+.palette-swatch-row span {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+}
+
+.palette-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.hazy-btn-group {
+  display: flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 10px;
+  gap: 2px;
+}
+
+.hazy-option-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hazy-option-btn.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.slider-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.slider-label-row span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.hazy-control-group input[type='range'] {
+  width: 100%;
+  accent-color: #10b981;
+  cursor: pointer;
+}
