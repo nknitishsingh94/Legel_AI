@@ -100,7 +100,7 @@ const DashboardOverview = ({ usageCount = 0, user }) => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
         {/* Usage Progress Card */}
         <div className="dash-card" style={{ background: isVip ? 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)' : (isLimitReached ? '#fef2f2' : '#f8fafc'), border: isLimitReached ? '1px solid #fca5a5' : '1px solid var(--border-color)', margin: 0, color: isVip ? '#fff' : 'inherit' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>

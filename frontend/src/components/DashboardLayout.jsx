@@ -40,9 +40,15 @@ const DashboardLayout = ({
           }} 
           chats={chats}
           activeChatId={activeChatId}
-          onSelectChat={onSelectChat}
+          onSelectChat={(id) => {
+            if (onSelectChat) onSelectChat(id);
+            closeSidebar();
+          }}
           onDeleteChat={onDeleteChat}
-          onNewChat={onNewChat}
+          onNewChat={() => {
+            if (onNewChat) onNewChat();
+            closeSidebar();
+          }}
           usageCount={usageCount}
         />
       </div>
