@@ -27,21 +27,21 @@ const articles = [
 
 const ArticlesSection = () => {
   return (
-    <section id="learn" style={{ padding: '8rem 2rem', background: '#fff', position: 'relative', zIndex: 2 }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <section id="learn" className="articles-section">
+      <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
         
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4rem' }}>
+        <div className="articles-header">
           <div>
-            <h2 style={{ fontSize: '2.5rem', lineHeight: 1.1, letterSpacing: '-0.03em', margin: 0 }}>
-              <span style={{ fontWeight: 800, color: '#1f2937', display: 'block' }}>Featured <span style={{ fontWeight: 400, color: '#1f2937' }}>Case</span></span>
-              <span style={{ fontWeight: 400, color: 'var(--accent-main)', display: 'block' }}>Studies.</span>
+            <h2 style={{ fontSize: '2.5rem', lineHeight: 1.15, letterSpacing: '-0.03em', margin: 0 }}>
+              <span style={{ fontWeight: 800, color: '#1f2937' }}>Featured Case </span>
+              <span style={{ fontWeight: 400, color: 'var(--accent-main, #10b981)' }}>Studies.</span>
             </h2>
-            <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+            <p style={{ fontSize: '1.15rem', color: 'var(--text-secondary)', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
               Deep dive into landmark judgements and case analyses.
             </p>
           </div>
-          <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', border: 'none', background: 'transparent', color: 'var(--accent-main)', fontWeight: 700, fontSize: '1.1rem', cursor: 'pointer' }}>
-            View all cases <ArrowRight size={20} />
+          <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', border: 'none', background: 'transparent', color: 'var(--accent-main, #10b981)', fontWeight: 700, fontSize: '1.05rem', cursor: 'pointer', padding: 0 }}>
+            <span>View all cases</span> <ArrowRight size={18} />
           </button>
         </div>
 

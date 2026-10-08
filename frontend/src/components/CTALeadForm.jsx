@@ -288,7 +288,7 @@ const CTALeadForm = ({ onGetStarted }) => {
         {/* Left Side: Content */}
         <div className="cta-lead-content">
           <h2 className="cta-lead-title">
-            <span style={{ fontWeight: 800 }}>Ready to Transform</span><br />
+            <span style={{ fontWeight: 800 }}>Ready to Transform </span><br />
             <span style={{ fontWeight: 400 }}>Your Legal Practice?</span>
           </h2>
           <p className="cta-lead-desc">
