@@ -3548,13 +3548,10 @@ body {
     box-sizing: border-box;
   }
 
-  /* Pricing section mobile fix */
-  .pricing-section,
-  [class*="pricing"] {
+  /* Pricing section mobile containment */
+  .pricing-section {
     max-width: 100vw;
     overflow-x: hidden;
-    padding-left: 1rem;
-    padding-right: 1rem;
     box-sizing: border-box;
   }
 
