@@ -152,7 +152,7 @@ function App() {
   };
 
   if (isSigningRoute) return <SigningPortal />;
-  if (view === 'landing') return <LandingPage onGetStarted={handleGetStarted} onLoginClick={() => setView('login')} onAboutClick={() => setView('about')} onNavigate={setView} />;
+  if (view === 'landing') return <LandingPage onGetStarted={handleGetStarted} onLoginClick={() => setView('login')} onAboutClick={() => setView('about')} onNavigate={setView} user={user} />;
   if (view === 'about') return <AboutUs onBack={() => setView('landing')} onGetStarted={handleGetStarted} onNavigate={setView} />;
   if (view === 'careers') return <Careers onBack={() => setView('landing')} onGetStarted={handleGetStarted} onNavigate={setView} />;
   if (view === 'academy') return <Academy onBack={() => setView('landing')} onGetStarted={handleGetStarted} onNavigate={setView} />;

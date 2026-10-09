@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Check, Zap, Sparkles, Shield, Building2, HelpCircle, ArrowRight } from 'lucide-react';
+import PaymentModal from './PaymentModal';
 import '../pricing.css';
 
-const PricingSection = ({ onGetStarted }) => {
+const PricingSection = ({ onGetStarted, user }) => {
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' or 'yearly'
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   const plans = [
     {
@@ -142,7 +145,16 @@ const PricingSection = ({ onGetStarted }) => {
 
                 <button 
                   className={`pricing-action-btn ${plan.buttonVariant}`}
-                  onClick={onGetStarted}
+                  onClick={() => {
+                    if (plan.id === 'pro') {
+                      setSelectedPlan(plan);
+                      setIsPaymentModalOpen(true);
+                    } else if (plan.id === 'enterprise') {
+                      window.location.href = 'mailto:sales@wakalatai.com?subject=Firm%20and%20Enterprise%20Plan%20Inquiry';
+                    } else {
+                      onGetStarted();
+                    }
+                  }}
                 >
                   <span>{plan.buttonText}</span>
                   <ArrowRight size={16} />
@@ -190,6 +202,18 @@ const PricingSection = ({ onGetStarted }) => {
             </div>
           </div>
         </div>
+
+        {/* Payment Checkout Modal (Cards, UPI, QR Code, Razorpay) */}
+        <PaymentModal 
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          plan={selectedPlan}
+          billingCycle={billingCycle}
+          user={user}
+          onPaymentSuccess={(details) => {
+            console.log("Subscription activated:", details);
+          }}
+        />
 
       </div>
     </section>

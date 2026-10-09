@@ -11,7 +11,7 @@ import Footer from './Footer';
 import AnimatedActivityList from './AnimatedActivityList';
 import AnimatedBackground from './AnimatedBackground';
 
-const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) => {
+const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate, user }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   React.useEffect(() => {
@@ -166,7 +166,7 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
         <UseCasesSection />
 
         {/* Pricing / Billing Plans */}
-        <PricingSection onGetStarted={onGetStarted} />
+        <PricingSection onGetStarted={onGetStarted} user={user} />
 
         {/* CTA Lead Form */}
         <CTALeadForm onGetStarted={onGetStarted} />

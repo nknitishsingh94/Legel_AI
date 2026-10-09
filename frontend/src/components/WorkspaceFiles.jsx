@@ -261,65 +261,87 @@ const WorkspaceFiles = ({ user }) => {
 
       {showSignModal && (
         <div className="modal-overlay" style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+          position: 'fixed', inset: 0, 
+          background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem'
         }}>
-          <div className="modal-content" style={{
-            background: 'white', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '500px'
+          <div className="modal-content animate-scale-up" style={{
+            background: '#ffffff', padding: '2rem', borderRadius: '20px', width: '100%', maxWidth: '480px',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0', boxSizing: 'border-box'
           }}>
-            <h2 style={{marginTop: 0, marginBottom: '1rem'}}>Send for e-Signature</h2>
-            <p style={{marginBottom: '1.5rem', color: '#64748b'}}>
-              Document: <strong>{selectedDoc?.title}</strong>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.2rem 0.6rem', borderRadius: '100px', letterSpacing: '0.04em' }}>
+                IT ACT 2000 VALID
+              </span>
+            </div>
+            
+            <h2 style={{ marginTop: 0, marginBottom: '0.35rem', fontSize: '1.35rem', fontWeight: 800, color: '#0f172a' }}>
+              Send for Legal e-Signature
+            </h2>
+            <p style={{ marginBottom: '1.5rem', color: '#64748b', fontSize: '0.85rem', lineHeight: 1.4 }}>
+              Document: <strong style={{ color: '#0f172a' }}>{selectedDoc?.title}</strong>
             </p>
 
             {!signingLink ? (
               <form onSubmit={handleSendForSignature}>
-                <div className="form-group" style={{marginBottom: '1rem'}}>
-                  <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: 500}}>Signer's Name</label>
+                <div className="form-group" style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, fontSize: '0.82rem', color: '#334155' }}>
+                    Signer's Full Legal Name
+                  </label>
                   <input 
                     type="text" 
                     required 
+                    placeholder="e.g. Ramesh Kumar Sharma"
                     value={signerName} 
                     onChange={e => setSignerName(e.target.value)} 
-                    style={{width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1'}}
+                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none' }}
                   />
                 </div>
-                <div className="form-group" style={{marginBottom: '1.5rem'}}>
-                  <label style={{display: 'block', marginBottom: '0.5rem', fontWeight: 500}}>Signer's Email</label>
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.4rem', fontWeight: 600, fontSize: '0.82rem', color: '#334155' }}>
+                    Signer's Official Email
+                  </label>
                   <input 
                     type="email" 
                     required 
+                    placeholder="signer@example.com"
                     value={signerEmail} 
                     onChange={e => setSignerEmail(e.target.value)} 
-                    style={{width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1'}}
+                    style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '10px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem', boxSizing: 'border-box', outline: 'none' }}
                   />
                 </div>
-                <div style={{display: 'flex', gap: '1rem', justifyContent: 'flex-end'}}>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
                   <button type="button" onClick={() => setShowSignModal(false)} style={{
-                    padding: '0.75rem 1.5rem', background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b'
+                    padding: '0.75rem 1.25rem', background: '#f1f5f9', border: 'none', borderRadius: '10px', cursor: 'pointer', color: '#64748b', fontWeight: 600, fontSize: '0.85rem'
                   }}>Cancel</button>
                   <button type="submit" disabled={isSending} style={{
-                    padding: '0.75rem 1.5rem', background: 'var(--accent-main)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer'
+                    padding: '0.75rem 1.5rem', background: '#b8860b', color: '#ffffff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', boxShadow: '0 4px 12px rgba(184, 134, 11, 0.25)'
                   }}>
-                    {isSending ? 'Creating Link...' : 'Generate Secure Link'}
+                    {isSending ? 'Generating Link...' : 'Create Secure Link'}
                   </button>
                 </div>
               </form>
             ) : (
               <div>
                 <div style={{
-                  padding: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', 
-                  wordBreak: 'break-all', marginBottom: '1.5rem', fontSize: '0.875rem'
+                  padding: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', 
+                  wordBreak: 'break-all', marginBottom: '1.5rem', fontSize: '0.85rem', color: '#0f172a', fontWeight: 500, lineHeight: 1.5
                 }}>
                   {signingLink}
                 </div>
-                <div style={{display: 'flex', gap: '1rem', justifyContent: 'flex-end'}}>
-                  <button onClick={() => navigator.clipboard.writeText(signingLink)} style={{
-                    padding: '0.75rem 1.5rem', background: 'var(--accent-main)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer'
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                  <button onClick={() => {
+                    navigator.clipboard.writeText(signingLink);
+                    alert("Signing link copied to clipboard!");
+                  }} style={{
+                    padding: '0.75rem 1.25rem', background: '#b8860b', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem'
                   }}>Copy Link</button>
+                  <a href={signingLink} target="_blank" rel="noopener noreferrer" style={{
+                    padding: '0.75rem 1.25rem', background: '#0f172a', color: 'white', textDecoration: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center'
+                  }}>Open Portal</a>
                   <button onClick={() => setShowSignModal(false)} style={{
-                    padding: '0.75rem 1.5rem', background: '#e2e8f0', color: '#1e293b', border: 'none', borderRadius: '6px', cursor: 'pointer'
-                  }}>Done</button>
+                    padding: '0.75rem 1.25rem', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem'
+                  }}>Close</button>
                 </div>
               </div>
             )}
