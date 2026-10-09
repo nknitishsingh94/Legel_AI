@@ -54,9 +54,9 @@ const UseCasesSection = () => {
       <div className="use-cases-container">
         
         <div className="use-cases-header">
-          <h2 style={{ fontSize: '2.5rem', lineHeight: 1.15, letterSpacing: '-0.03em', marginBottom: '1.5rem', color: '#ffffff' }}>
-            <span style={{ fontWeight: 800, display: 'block' }}>Specialized Solutions for</span>
-            <span style={{ fontWeight: 400, display: 'block', color: 'var(--accent-gold, #b8860b)' }}>Every Practice Area.</span>
+          <h2 className="use-cases-main-title">
+            <span className="use-cases-title-bold">Specialized Solutions for</span>
+            <span className="use-cases-title-gold">Every Practice Area.</span>
           </h2>
           <p>
             From high-stakes corporate mergers to individual criminal defense, Wakalat AI adapts to the unique demands of your specific legal field.
