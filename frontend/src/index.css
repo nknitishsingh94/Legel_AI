@@ -3267,25 +3267,29 @@ body {
   }
 
   .hero-buttons {
-    flex-direction: column;
-    gap: 0.85rem;
+    flex-direction: row;
+    gap: 0.65rem;
     width: 100%;
     align-items: center;
+    justify-content: center;
     margin-bottom: 2rem;
   }
 
   .hero-buttons .btn-primary, .hero-buttons .btn-outline {
-    width: 100%;
+    flex: 1;
     text-align: center;
     justify-content: center;
-    min-height: 48px;
-    font-size: 1rem;
+    min-height: 44px;
+    font-size: 0.875rem;
+    padding: 0.65rem 0.9rem;
+    white-space: nowrap;
   }
 
   .hero-btn-main {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
     color: #ffffff !important;
-    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4) !important;
+    box-shadow: 0 6px 16px -4px rgba(16, 185, 129, 0.4) !important;
+    gap: 0.4rem !important;
   }
 
   .hero-metrics-bar {
