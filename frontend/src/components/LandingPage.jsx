@@ -14,6 +14,16 @@ import AnimatedBackground from './AnimatedBackground';
 const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  React.useEffect(() => {
+    if (window.location.hash) {
+      const scrollTimer = setTimeout(() => {
+        const el = document.querySelector(window.location.hash);
+        if (el) el.scrollIntoView({ behavior: 'auto' });
+      }, 400);
+      return () => clearTimeout(scrollTimer);
+    }
+  }, []);
+
   return (
     <div className="landing-page animate-fade-in">
       {/* Slow Color-Shifting Hazy Atmospheric Background */}
