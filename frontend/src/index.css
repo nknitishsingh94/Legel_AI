@@ -3334,28 +3334,52 @@ body {
 
   .use-cases-section {
     padding: 3.5rem 1rem;
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .use-cases-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
   }
 
   .use-cases-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
+    padding: 0 0.5rem;
+    text-align: center;
   }
 
   .use-cases-header h2 {
     font-size: 1.85rem !important;
     line-height: 1.2;
+    margin-bottom: 1rem !important;
   }
 
   .use-cases-header p {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
   }
 
   .use-cases-grid {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1.1rem;
+    padding: 0;
+    box-sizing: border-box;
   }
 
   .use-case-card {
-    padding: 1.75rem 1.25rem;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 1.5rem 1.25rem;
+    border-radius: 18px;
+    margin: 0;
   }
 
   /* Permanent action visibility on mobile touch screens */

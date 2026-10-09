@@ -153,14 +153,10 @@ const LandingPage = ({ onGetStarted, onLoginClick, onAboutClick, onNavigate }) =
         </section>
 
         {/* Use Cases / Practice Areas */}
-        <section className="landing-section-wrapperAlt">
-          <UseCasesSection />
-        </section>
+        <UseCasesSection />
 
         {/* Pricing / Billing Plans */}
-        <section id="pricing" className="landing-section-wrapper">
-          <PricingSection onGetStarted={onGetStarted} />
-        </section>
+        <PricingSection onGetStarted={onGetStarted} />
 
         {/* CTA Lead Form */}
         <CTALeadForm onGetStarted={onGetStarted} />
