@@ -269,16 +269,37 @@ const CTALeadForm = ({ onGetStarted }) => {
         }
         
         @media (max-width: 768px) {
+          .cta-lead-section {
+            padding: 3.5rem 1rem;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            max-width: 100vw;
+          }
+          .cta-lead-container {
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+            padding: 0;
+          }
           .cta-lead-title {
-            font-size: 2.2rem;
+            font-size: 1.85rem;
             text-align: center;
+            line-height: 1.2;
           }
           .cta-lead-desc {
             text-align: center;
-            margin: 0 auto 2rem auto;
+            margin: 0 auto 1.75rem auto;
+            font-size: 1rem;
           }
           .cta-lead-content {
             align-items: center;
+          }
+          .cta-lead-form-card {
+            padding: 1.75rem 1.25rem;
+            max-width: 100%;
+            box-sizing: border-box;
+          }
+          .cta-lead-form-wrapper {
+            justify-content: stretch;
           }
         }
       `}</style>

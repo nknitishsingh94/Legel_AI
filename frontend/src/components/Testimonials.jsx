@@ -81,6 +81,10 @@ const Testimonials = () => {
     setScrollIndex(prev => (prev < displayData.length - 1 ? prev + 1 : 0));
   };
 
+  const cardWidth = typeof window !== 'undefined' && window.innerWidth <= 768
+    ? window.innerWidth - 48  // full width minus padding on mobile
+    : 380;
+
   return (
     <section id="testimonials" style={{ padding: '6rem 0', background: '#f8fafc', overflow: 'hidden', flexShrink: 0 }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto 3rem auto', padding: '0 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
@@ -113,7 +117,7 @@ const Testimonials = () => {
       </div>
 
       <div className="marquee-container">
-        <div className="marquee-content" style={{ transform: `translateX(-${scrollIndex * 380}px)`, transition: 'transform 0.4s ease' }}>
+        <div className="marquee-content" style={{ transform: `translateX(-${scrollIndex * (cardWidth + 32)}px)`, transition: 'transform 0.4s ease' }}>
           {displayData.map(t => <TestimonialCard key={t.id} testimonial={t} />)}
           {displayData.map(t => <TestimonialCard key={`${t.id}-duplicate`} testimonial={t} />)}
         </div>
