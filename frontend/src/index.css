@@ -3640,3 +3640,136 @@ body {
 .animate-pop-in {
   animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ============================================================
+   SIDEBAR WRAPPER & MOBILE RESPONSIVE LAYOUT
+   ============================================================ */
+
+/* Desktop: sidebar always visible */
+.sidebar-wrapper {
+  display: flex;
+  flex-shrink: 0;
+  height: 100vh;
+  z-index: 200;
+}
+
+/* Overlay — hidden on desktop */
+.mobile-sidebar-overlay {
+  display: none;
+}
+
+/* Mobile menu button — hidden on desktop */
+.mobile-menu-btn {
+  display: none !important;
+  background: none;
+  border: none;
+  color: var(--text-primary, #374151);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.mobile-menu-btn:hover {
+  background: #f1f5f9;
+}
+
+/* Hide heavy elements on mobile */
+.hide-on-mobile {
+  display: flex;
+}
+
+/* ============================================================
+   MOBILE — max-width: 768px
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* Dashboard root */
+  .dashboard-layout {
+    flex-direction: row;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Sidebar wrapper: off-screen left by default */
+  .sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 500;
+    box-shadow: none;
+  }
+
+  /* When sidebar is open, slide in */
+  .sidebar-wrapper.sidebar-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+  }
+
+  /* Dim overlay behind sidebar */
+  .mobile-sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 400;
+    backdrop-filter: blur(2px);
+    animation: fadeOverlay 0.25s ease forwards;
+  }
+
+  @keyframes fadeOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Show hamburger button on mobile */
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+
+  /* Hide search bar text & username on mobile */
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  /* Main content takes full width */
+  .dashboard-main {
+    width: 100vw;
+    min-width: 0;
+  }
+
+  /* Navbar padding adjustment */
+  .app-navbar {
+    padding: 0.75rem 1rem;
+  }
+
+  /* Sidebar itself — ensure it fills wrapper */
+  .ai-lawyer-sidebar {
+    width: 260px;
+    height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+/* ============================================================
+   SMALL PHONES — max-width: 480px
+   ============================================================ */
+@media (max-width: 480px) {
+
+  .sidebar-wrapper {
+    width: 85vw;
+    max-width: 300px;
+  }
+
+  .ai-lawyer-sidebar {
+    width: 100%;
+  }
+
+  .app-navbar {
+    padding: 0.6rem 0.75rem;
+  }
+}
