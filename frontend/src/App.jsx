@@ -21,14 +21,22 @@ import Settings from './components/Settings'
 import SigningPortal from './components/SigningPortal'
 
 function App() {
-  const [isSigningRoute, setIsSigningRoute] = useState(false);
-  const [view, setView] = useState('landing'); // 'landing', 'login', 'app'
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [view, setView] = useState(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.search.includes('view=app') || window.location.hash === '#dashboard') return 'app';
+    }
+    return 'landing';
+  });
   const [dashboardView, setDashboardView] = useState('overview'); // 'overview', 'compare', 'chat', etc.
+  const [isSigningRoute, setIsSigningRoute] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     if (window.location.pathname.startsWith('/sign/')) {
       setIsSigningRoute(true);
+    }
+    if (window.location.search.includes('view=app') || window.location.hash === '#dashboard') {
+      setView('app');
     }
   }, []);
 
@@ -59,7 +67,10 @@ function App() {
           } else {
             setUser(null);
             setIsLoggedIn(false);
-            setView('landing');
+            const isPreview = window.location.search.includes('view=app') || window.location.hash === '#dashboard';
+            if (!isPreview) {
+              setView('landing');
+            }
           }
         });
       } catch (e) {

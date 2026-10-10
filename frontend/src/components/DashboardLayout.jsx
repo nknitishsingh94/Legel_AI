@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AppSidebar from './AppSidebar';
 import AppNavbar from './AppNavbar';
+import PaymentModal from './PaymentModal';
 
 const DashboardLayout = ({ 
   children, 
@@ -15,6 +16,7 @@ const DashboardLayout = ({
   usageCount
 }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
@@ -50,6 +52,7 @@ const DashboardLayout = ({
             closeSidebar();
           }}
           usageCount={usageCount}
+          onUpgrade={() => setIsPaymentModalOpen(true)}
         />
       </div>
 
@@ -65,6 +68,18 @@ const DashboardLayout = ({
           {children}
         </div>
       </div>
+
+      {/* Payment Modal for Pro Upgrades */}
+      <PaymentModal 
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        plan={{ id: 'pro', name: 'Advocate Pro' }}
+        billingCycle="monthly"
+        user={user}
+        onPaymentSuccess={(details) => {
+          console.log("Upgraded to Pro:", details);
+        }}
+      />
     </div>
   );
 };
