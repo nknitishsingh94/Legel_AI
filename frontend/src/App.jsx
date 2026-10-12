@@ -17,6 +17,7 @@ import ChatArea from './components/ChatArea'
 import WorkspaceFiles from './components/WorkspaceFiles'
 import AgreementSummary from './components/AgreementSummary'
 import CreateAgreement from './components/CreateAgreement'
+import DraftingStudio from './components/DraftingStudio'
 import Settings from './components/Settings'
 import SigningPortal from './components/SigningPortal'
 
@@ -27,7 +28,7 @@ function App() {
     }
     return 'landing';
   });
-  const [dashboardView, setDashboardView] = useState('overview'); // 'overview', 'compare', 'chat', etc.
+  const [dashboardView, setDashboardView] = useState('overview'); // 'overview', 'compare', 'chat', 'drafting', etc.
   const [isSigningRoute, setIsSigningRoute] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -205,6 +206,8 @@ function App() {
         <AgreementSummary />
       ) : dashboardView === 'create' ? (
         <CreateAgreement user={user} onNavigate={setDashboardView} />
+      ) : dashboardView === 'drafting' ? (
+        <DraftingStudio user={user} onNavigate={setDashboardView} />
       ) : dashboardView === 'settings' ? (
         <Settings user={user} />
       ) : (
