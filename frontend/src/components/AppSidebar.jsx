@@ -217,19 +217,6 @@ const AppSidebar = ({
           <span className="nav-label">Create Agreement</span>
           {activeView === 'create' && <div className="nav-active-pip" />}
         </a>
-
-        <a 
-          href="#drafting" 
-          className={`nav-item-projected ${activeView === 'drafting' ? 'active' : ''}`} 
-          onClick={(e) => { e.preventDefault(); if(onNavigate) onNavigate('drafting'); }}
-        >
-          <div className="nav-laser-beam" />
-          <div className="nav-icon-shell">
-            <Edit3 size={18} />
-          </div>
-          <span className="nav-label">Drafting</span>
-          {activeView === 'drafting' && <div className="nav-active-pip" />}
-        </a>
       </nav>
 
       {/* Scrollable Research Sessions & Knowledge Base */}
