@@ -88,7 +88,7 @@ try {
 const initializeLLM = () => {
   if (process.env.GEMINI_API_KEY && typeof ChatGoogleGenerativeAI !== 'undefined') {
     return new ChatGoogleGenerativeAI({
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-1.5-flash",
       temperature: 0.2,
       apiKey: process.env.GEMINI_API_KEY
     });
@@ -318,7 +318,7 @@ app.post('/api/document/generate', async (req, res) => {
   const partyA = party_details.partyA || (parties && parties.length > 0 ? parties[0] : "Party A");
   const partyB = party_details.partyB || (parties && parties.length > 1 ? parties[1] : "Party B");
 
-  // If LLM is available, try invoking it with a rich legal prompt
+  // If LLM is available, try invoking it with a rich legal prompt with 2.5s timeout
   if (llm) {
     try {
       const prompt = `You are an expert Indian Legal Drafting Advocate.
@@ -332,10 +332,18 @@ Specific Clauses / Facts: ${specific_clauses ? (Array.isArray(specific_clauses) 
 
 Include proper headings, numbered paragraphs, statutory citations, prayer / covenant clause, and verification / signature blocks.`;
 
-      const response = await llm.invoke([new HumanMessage(prompt)]);
-      return res.json({ draft: response.content });
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('LLM timeout')), 2500)
+      );
+      const response = await Promise.race([
+        llm.invoke([new HumanMessage(prompt)]),
+        timeoutPromise
+      ]);
+      if (response && response.content) {
+        return res.json({ draft: response.content });
+      }
     } catch (llmError) {
-      console.warn("LLM generation failed, falling back to built-in drafting engine:", llmError.message);
+      console.warn("LLM generation skipped/failed, using built-in high-fidelity drafting engine:", llmError.message);
     }
   }
 

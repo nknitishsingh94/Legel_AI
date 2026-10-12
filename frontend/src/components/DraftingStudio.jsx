@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FileText, PenTool, Sparkles, Download, Printer, Copy, Check, Save, 
-  Shield, Scale, ChevronRight, RefreshCw, Search, BookOpen, AlertCircle
+  Shield, Scale, ChevronRight, RefreshCw, Search, BookOpen, AlertCircle,
+  ArrowLeft, ArrowRight
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './DraftingStudio.css';
@@ -192,6 +193,7 @@ const CATEGORIES = [
 ];
 
 const DraftingStudio = ({ user, onNavigate }) => {
+  const [viewMode, setViewMode] = useState('gallery'); // 'gallery' | 'editor'
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(DRAFT_TEMPLATES[0]);
@@ -222,16 +224,25 @@ const DraftingStudio = ({ user, onNavigate }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Core drafting function
+  // Core drafting function: renders immediately with zero lag, then refreshes if AI returns
   const executeDraftGeneration = async (tmplToUse, formToUse) => {
     const tmpl = tmplToUse || selectedTemplate;
     const fData = formToUse || formData;
     setIsGenerating(true);
 
+    // 1. Instantly generate and display court-ready high fidelity draft (0ms delay)
+    const initialDraft = generateFullDraft(tmpl, fData);
+    setGeneratedDraft(initialDraft);
+
+    // 2. Background attempt to augment with backend AI if online
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+
       const response = await fetch(`${API_BASE_URL}/document/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           document_type: fData.language === 'hi' ? tmpl.titleHi : tmpl.title,
           category: tmpl.category,
@@ -259,33 +270,28 @@ const DraftingStudio = ({ user, onNavigate }) => {
           criminal_code: fData.criminalCode
         })
       });
+      clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        throw new Error('API server returned non-200');
-      }
-
-      const data = await response.json();
-      if (data && data.draft) {
-        setGeneratedDraft(data.draft);
-      } else {
-        throw new Error('No draft returned');
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.draft) {
+          setGeneratedDraft(data.draft);
+        }
       }
     } catch (err) {
-      console.warn("Using built-in high-fidelity client generator:", err.message);
-      const draft = generateFullDraft(tmpl, fData);
-      setGeneratedDraft(draft);
+      // High-fidelity client draft is already displayed cleanly
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // Initial load: generate initial draft so paper is ready immediately
+  // Initial load: keep paper pre-rendered
   useEffect(() => {
     executeDraftGeneration(DRAFT_TEMPLATES[0], formData);
   }, []);
 
-  // When user clicks "Draft Now" or a template card
-  const handleSelectAndDraft = async (tmpl) => {
+  // When user clicks "Draft Now" or any template card in Gallery
+  const handleStartDrafting = (tmpl) => {
     setSelectedTemplate(tmpl);
     const updatedForm = {
       ...formData,
@@ -293,15 +299,25 @@ const DraftingStudio = ({ user, onNavigate }) => {
       partyB: tmpl.defaultPartyB || formData.partyB
     };
     setFormData(updatedForm);
+    setViewMode('editor');
+    executeDraftGeneration(tmpl, updatedForm);
 
-    // Smooth scroll down to workspace
-    setTimeout(() => {
-      const el = document.getElementById('drafting-workspace');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 60);
+    // Scroll window/container to top smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const container = document.querySelector('.drafting-studio-container');
+    if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-    // Immediately trigger draft generation!
-    await executeDraftGeneration(tmpl, updatedForm);
+  // When user switches template inside Editor view
+  const handleSwitchTemplate = (tmpl) => {
+    setSelectedTemplate(tmpl);
+    const updatedForm = {
+      ...formData,
+      partyA: tmpl.defaultPartyA || formData.partyA,
+      partyB: tmpl.defaultPartyB || formData.partyB
+    };
+    setFormData(updatedForm);
+    executeDraftGeneration(tmpl, updatedForm);
   };
 
   // Form submit button handler
@@ -750,92 +766,221 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
     return matchesCategory && matchesSearch;
   });
 
+  // GALLERY VIEW: Display all legal templates with prominent "Draft Now" buttons
+  if (viewMode === 'gallery') {
+    return (
+      <div className="drafting-studio-container animate-fade-in">
+        {/* Studio Header */}
+        <div className="ds-header">
+          <div className="ds-header-left">
+            <h1>
+              <PenTool size={28} color="#10b981" />
+              Legal Drafting Studio
+              <span className="ds-header-badge">AI DRAFT GEN</span>
+            </h1>
+            <p>Select any court-tested Indian legal template below and click <strong>"Draft Now"</strong> to customize and generate authentic instruments.</p>
+          </div>
+
+          <div className="ds-header-stats">
+            <div className="ds-stat-pill">
+              <Scale size={16} className="icon-gold" />
+              <span>BNS / BNSS 2023 Ready</span>
+            </div>
+            <div className="ds-stat-pill">
+              <BookOpen size={16} color="#059669" />
+              <span>Indian Courts & Registry Tested</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Nav & Quick Search */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          <div className="ds-category-nav">
+            {CATEGORIES.map(cat => (
+              <button 
+                key={cat.id} 
+                className={`ds-category-btn ${selectedCategory === cat.id ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat.id)}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ position: 'relative', width: '260px' }}>
+            <Search size={15} style={{ position: 'absolute', left: '10px', top: '10px', color: '#64748b' }} />
+            <input 
+              type="text" 
+              placeholder="Search templates..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="ds-input"
+              style={{ paddingLeft: '32px', width: '100%', boxSizing: 'border-box', fontSize: '0.82rem' }}
+            />
+          </div>
+        </div>
+
+        {/* Template Cards Grid */}
+        <div className="ds-templates-row">
+          {filteredTemplates.map(tmpl => {
+            const IconComp = tmpl.icon || FileText;
+            return (
+              <div 
+                key={tmpl.id} 
+                className="ds-template-card"
+                onClick={() => handleStartDrafting(tmpl)}
+              >
+                <div className="ds-template-top">
+                  <div className="ds-template-icon">
+                    <IconComp size={18} />
+                  </div>
+                  <span className="ds-template-tag">{tmpl.tag}</span>
+                </div>
+                <div className="ds-template-title">{tmpl.title}</div>
+                <div className="ds-template-desc">{tmpl.desc}</div>
+                <button 
+                  type="button"
+                  className="ds-draft-now-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleStartDrafting(tmpl);
+                  }}
+                >
+                  <span>Draft Now</span>
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // EDITOR VIEW: Dedicated full-screen drafting workspace & legal paper editor
   return (
     <div className="drafting-studio-container animate-fade-in">
       
-      {/* Studio Header */}
-      <div className="ds-header">
-        <div className="ds-header-left">
-          <h1>
-            <PenTool size={28} color="#10b981" />
-            Legal Drafting Studio
-            <span className="ds-header-badge">AI DRAFT GEN</span>
-          </h1>
-          <p>Draft court-admissible petitions, statutory notices under Section 138, BNSS 2023 bail applications, and agreements in seconds.</p>
+      {/* Editor Top Navigation Bar */}
+      <div className="ds-editor-nav-bar">
+        <div className="ds-editor-nav-left">
+          <button 
+            type="button"
+            className="ds-back-btn"
+            onClick={() => setViewMode('gallery')}
+            title="Return to Templates Gallery"
+          >
+            <ArrowLeft size={16} />
+            <span>All Templates</span>
+          </button>
+
+          <div className="ds-active-doc-info">
+            <span className="ds-doc-status-badge">Active</span>
+            <span className="ds-doc-title">
+              {formData.language === 'hi' ? selectedTemplate.titleHi : selectedTemplate.title}
+            </span>
+          </div>
+
+          <div className="ds-quick-switch-wrap">
+            <label>Template:</label>
+            <select 
+              className="ds-template-select-dropdown"
+              value={selectedTemplate.id}
+              onChange={(e) => {
+                const tmpl = DRAFT_TEMPLATES.find(t => t.id === e.target.value);
+                if (tmpl) handleSwitchTemplate(tmpl);
+              }}
+            >
+              {DRAFT_TEMPLATES.map(t => (
+                <option key={t.id} value={t.id}>{t.title}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className="ds-header-stats">
-          <div className="ds-stat-pill">
-            <Scale size={16} className="icon-gold" />
-            <span>BNS / BNSS 2023 Ready</span>
-          </div>
-          <div className="ds-stat-pill">
-            <BookOpen size={16} color="#38bdf8" />
-            <span>Bilingual Support</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Category Nav & Quick Search */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-        <div className="ds-category-nav">
-          {CATEGORIES.map(cat => (
+        <div className="ds-editor-nav-right">
+          {/* Language Toggle */}
+          <div className="ds-pill-group">
             <button 
-              key={cat.id} 
-              className={`ds-category-btn ${selectedCategory === cat.id ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(cat.id)}
+              type="button" 
+              className={`ds-pill-opt ${formData.language === 'en' ? 'active' : ''}`}
+              onClick={() => {
+                const updated = { ...formData, language: 'en' };
+                setFormData(updated);
+                executeDraftGeneration(selectedTemplate, updated);
+              }}
             >
-              {cat.label}
+              English
             </button>
-          ))}
-        </div>
-
-        <div style={{ position: 'relative', width: '240px' }}>
-          <Search size={15} style={{ position: 'absolute', left: '10px', top: '10px', color: '#64748b' }} />
-          <input 
-            type="text" 
-            placeholder="Search templates..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="ds-input"
-            style={{ paddingLeft: '32px', width: '100%', boxSizing: 'border-box', fontSize: '0.82rem' }}
-          />
-        </div>
-      </div>
-
-      {/* Template Cards Carousel / Grid */}
-      <div className="ds-templates-row">
-        {filteredTemplates.map(tmpl => {
-          const IconComp = tmpl.icon || FileText;
-          const isSelected = selectedTemplate.id === tmpl.id;
-          return (
-            <div 
-              key={tmpl.id} 
-              className={`ds-template-card ${isSelected ? 'active' : ''}`}
-              onClick={() => handleSelectAndDraft(tmpl)}
+            <button 
+              type="button" 
+              className={`ds-pill-opt ${formData.language === 'hi' ? 'active' : ''}`}
+              onClick={() => {
+                const updated = { ...formData, language: 'hi' };
+                setFormData(updated);
+                executeDraftGeneration(selectedTemplate, updated);
+              }}
             >
-              <div className="ds-template-top">
-                <div className="ds-template-icon">
-                  <IconComp size={18} />
-                </div>
-                <span className="ds-template-tag">{tmpl.tag}</span>
-              </div>
-              <div className="ds-template-title">{formData.language === 'hi' ? tmpl.titleHi : tmpl.title}</div>
-              <div className="ds-template-desc">{tmpl.desc}</div>
+              Hindi
+            </button>
+          </div>
+
+          {/* Criminal Code Toggle if applicable */}
+          {selectedTemplate.needsCriminal && (
+            <div className="ds-pill-group">
               <button 
-                type="button"
-                className={`ds-draft-now-btn ${isGenerating && isSelected ? 'loading' : ''}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSelectAndDraft(tmpl);
+                type="button" 
+                className={`ds-pill-opt ${formData.criminalCode === 'BNSS' ? 'active' : ''}`}
+                onClick={() => {
+                  const updated = { ...formData, criminalCode: 'BNSS' };
+                  setFormData(updated);
+                  executeDraftGeneration(selectedTemplate, updated);
                 }}
               >
-                <span>{isGenerating && isSelected ? 'Drafting...' : 'Draft Now'}</span>
-                <ChevronRight size={14} />
+                BNSS 2023
+              </button>
+              <button 
+                type="button" 
+                className={`ds-pill-opt ${formData.criminalCode === 'CrPC' ? 'active' : ''}`}
+                onClick={() => {
+                  const updated = { ...formData, criminalCode: 'CrPC' };
+                  setFormData(updated);
+                  executeDraftGeneration(selectedTemplate, updated);
+                }}
+              >
+                CrPC
               </button>
             </div>
-          );
-        })}
+          )}
+
+          {/* Export Action Buttons */}
+          <button className="ds-tool-btn" onClick={handleCopy} title="Copy Draft to Clipboard">
+            {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
+            <span>{copied ? 'Copied' : 'Copy'}</span>
+          </button>
+
+          <button className="ds-tool-btn" onClick={handleDownloadWord} title="Download as Word Document (.doc)">
+            <Download size={14} />
+            <span>Word (.doc)</span>
+          </button>
+
+          <button className="ds-tool-btn" onClick={handlePrint} title="Print / Save PDF with Court Margins">
+            <Printer size={14} />
+            <span>Print / PDF</span>
+          </button>
+
+          {user && (
+            <button 
+              className="ds-tool-btn primary" 
+              onClick={handleSaveToWorkspace}
+              disabled={isSaving}
+              title="Save to Workspace Documents"
+            >
+              <Save size={14} />
+              <span>{isSaving ? 'Saving...' : 'Save Draft'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Studio Workspace: Left Form & Right Paper Editor */}
@@ -845,71 +990,7 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
         <div className="ds-form-panel">
           
           <div className="ds-section-title">
-            <Scale size={16} /> 1. Drafting Configuration & Language
-          </div>
-
-          <div className="ds-form-row">
-            <div className="ds-form-group">
-              <label>Drafting Language</label>
-              <div className="ds-pill-group">
-                <button 
-                  type="button" 
-                  className={`ds-pill-opt ${formData.language === 'en' ? 'active' : ''}`}
-                  onClick={() => {
-                    const updated = { ...formData, language: 'en' };
-                    setFormData(updated);
-                    executeDraftGeneration(selectedTemplate, updated);
-                  }}
-                >
-                  English
-                </button>
-                <button 
-                  type="button" 
-                  className={`ds-pill-opt ${formData.language === 'hi' ? 'active' : ''}`}
-                  onClick={() => {
-                    const updated = { ...formData, language: 'hi' };
-                    setFormData(updated);
-                    executeDraftGeneration(selectedTemplate, updated);
-                  }}
-                >
-                  Hindi
-                </button>
-              </div>
-            </div>
-
-            <div className="ds-form-group">
-              <label>Criminal Code</label>
-              <div className="ds-pill-group">
-                <button 
-                  type="button" 
-                  className={`ds-pill-opt ${formData.criminalCode === 'BNSS' ? 'active' : ''}`}
-                  onClick={() => {
-                    const updated = { ...formData, criminalCode: 'BNSS' };
-                    setFormData(updated);
-                    executeDraftGeneration(selectedTemplate, updated);
-                  }}
-                  title="Bharatiya Nyaya Sanhita / BNSS 2023"
-                >
-                  BNSS / BNS (2023)
-                </button>
-                <button 
-                  type="button" 
-                  className={`ds-pill-opt ${formData.criminalCode === 'CrPC' ? 'active' : ''}`}
-                  onClick={() => {
-                    const updated = { ...formData, criminalCode: 'CrPC' };
-                    setFormData(updated);
-                    executeDraftGeneration(selectedTemplate, updated);
-                  }}
-                  title="Traditional CrPC / IPC"
-                >
-                  CrPC / IPC
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="ds-section-title" style={{ marginTop: '0.5rem' }}>
-            <FileText size={16} /> 2. Parties & Representation
+            <FileText size={16} /> Parties & Legal Representation
           </div>
 
           <div className="ds-form-row">
@@ -1116,7 +1197,7 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
             ) : (
               <>
                 <Sparkles size={18} />
-                Generate {formData.language === 'hi' ? selectedTemplate.titleHi : selectedTemplate.title}
+                Regenerate {formData.language === 'hi' ? selectedTemplate.titleHi : selectedTemplate.title}
               </>
             )}
           </button>
@@ -1132,42 +1213,14 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
               <FileText size={16} color="#10b981" />
               <span>Court Document Paper Editor</span>
             </div>
-
-            {generatedDraft && (
-              <div className="ds-toolbar-actions">
-                <button className="ds-tool-btn" onClick={handleCopy} title="Copy Draft to Clipboard">
-                  {copied ? <Check size={14} color="#10b981" /> : <Copy size={14} />}
-                  <span>{copied ? 'Copied' : 'Copy'}</span>
-                </button>
-
-                <button className="ds-tool-btn" onClick={handleDownloadWord} title="Download as Word Document (.doc)">
-                  <Download size={14} />
-                  <span>Word (.doc)</span>
-                </button>
-
-                <button className="ds-tool-btn" onClick={handlePrint} title="Print / Save PDF with Court Margins">
-                  <Printer size={14} />
-                  <span>Print / PDF</span>
-                </button>
-
-                {user && (
-                  <button 
-                    className="ds-tool-btn primary" 
-                    onClick={handleSaveToWorkspace}
-                    disabled={isSaving}
-                    title="Save to Workspace Documents"
-                  >
-                    <Save size={14} />
-                    <span>{isSaving ? 'Saving...' : 'Save Draft'}</span>
-                  </button>
-                )}
-              </div>
-            )}
+            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+              Click anywhere inside the paper to edit text directly
+            </span>
           </div>
 
           {/* Paper Viewport */}
           <div className="ds-paper-viewport">
-            {isGenerating ? (
+            {isGenerating && !generatedDraft ? (
               <div className="ds-state-box">
                 <RefreshCw size={40} className="ds-spinning" color="#10b981" />
                 <h3>Drafting Legal Instrument...</h3>
