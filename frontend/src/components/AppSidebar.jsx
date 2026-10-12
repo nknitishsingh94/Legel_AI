@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   MoreVertical, Search, Edit, Folder, FileText, 
-  Files, FilePlus, ChevronDown, Plus, Sparkles, User, LayoutDashboard, Settings, Trash2, MessageSquare
+  Files, FilePlus, ChevronDown, Plus, Sparkles, User, LayoutDashboard, Settings, Trash2, MessageSquare, PenTool
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './AppSidebar.css';
@@ -65,6 +65,10 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
         <a href="#" className={`nav-item-link ${activeView === 'create' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if(onNavigate) onNavigate('create'); }}>
           <FilePlus size={18} />
           <span>Create agreement</span>
+        </a>
+        <a href="#" className={`nav-item-link ${activeView === 'drafting' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if(onNavigate) onNavigate('drafting'); }}>
+          <PenTool size={18} />
+          <span>Drafting</span>
         </a>
       </nav>
 
