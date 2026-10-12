@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, PenTool, Sparkles, Download, Printer, Copy, Check, Save, 
-  Share2, Shield, Scale, ChevronRight, RefreshCw, Search, BookOpen, AlertCircle
+  Shield, Scale, ChevronRight, RefreshCw, Search, BookOpen, AlertCircle
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './DraftingStudio.css';
@@ -222,19 +222,10 @@ const DraftingStudio = ({ user, onNavigate }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Template switch handler
-  const handleSelectTemplate = (tmpl) => {
-    setSelectedTemplate(tmpl);
-    setFormData(prev => ({
-      ...prev,
-      partyA: tmpl.defaultPartyA,
-      partyB: tmpl.defaultPartyB
-    }));
-  };
-
-  // Generate Draft via Backend API
-  const handleGenerate = async (e) => {
-    if (e) e.preventDefault();
+  // Core drafting function
+  const executeDraftGeneration = async (tmplToUse, formToUse) => {
+    const tmpl = tmplToUse || selectedTemplate;
+    const fData = formToUse || formData;
     setIsGenerating(true);
 
     try {
@@ -242,183 +233,462 @@ const DraftingStudio = ({ user, onNavigate }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          document_type: formData.language === 'hi' ? selectedTemplate.titleHi : selectedTemplate.title,
-          category: selectedTemplate.category,
-          parties: [formData.partyA, formData.partyB],
+          document_type: fData.language === 'hi' ? tmpl.titleHi : tmpl.title,
+          category: tmpl.category,
+          parties: [fData.partyA, fData.partyB],
           party_details: {
-            partyA: formData.partyA,
-            partyB: formData.partyB,
-            advocateName: formData.advocateName
+            partyA: fData.partyA,
+            partyB: fData.partyB,
+            advocateName: fData.advocateName
           },
           case_details: {
-            jurisdiction: formData.jurisdiction,
-            courtName: formData.courtName,
-            amount: formData.amount,
-            chequeNo: formData.chequeNo,
-            chequeDate: formData.chequeDate,
-            bankName: formData.bankName,
-            firNo: formData.firNo,
-            policeStation: formData.policeStation,
-            propertyAddress: formData.propertyAddress,
-            rentAmount: formData.rentAmount,
-            securityDeposit: formData.securityDeposit
+            jurisdiction: fData.jurisdiction,
+            courtName: fData.courtName,
+            amount: fData.amount,
+            chequeNo: fData.chequeNo,
+            chequeDate: fData.chequeDate,
+            bankName: fData.bankName,
+            firNo: fData.firNo,
+            policeStation: fData.policeStation,
+            propertyAddress: fData.propertyAddress,
+            rentAmount: fData.rentAmount,
+            securityDeposit: fData.securityDeposit
           },
-          specific_clauses: formData.specificClauses ? [formData.specificClauses] : [],
-          language: formData.language,
-          criminal_code: formData.criminalCode
+          specific_clauses: fData.specificClauses ? [fData.specificClauses] : [],
+          language: fData.language,
+          criminal_code: fData.criminalCode
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate draft from server.');
+        throw new Error('API server returned non-200');
       }
 
       const data = await response.json();
-      setGeneratedDraft(data.draft);
+      if (data && data.draft) {
+        setGeneratedDraft(data.draft);
+      } else {
+        throw new Error('No draft returned');
+      }
     } catch (err) {
-      console.warn("Backend API unavailable, using client-side generator:", err);
-      // Client-side fallback generator for instant zero-downtime reliability
-      const draft = generateFallbackDraft();
+      console.warn("Using built-in high-fidelity client generator:", err.message);
+      const draft = generateFullDraft(tmpl, fData);
       setGeneratedDraft(draft);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // Client-side fallback generator in case of network/offline issues
-  const generateFallbackDraft = () => {
-    const isHi = formData.language === 'hi';
-    const isBnss = formData.criminalCode === 'BNSS';
+  // Initial load: generate initial draft so paper is ready immediately
+  useEffect(() => {
+    executeDraftGeneration(DRAFT_TEMPLATES[0], formData);
+  }, []);
 
-    if (selectedTemplate.id === 'notice-138') {
+  // When user clicks "Draft Now" or a template card
+  const handleSelectAndDraft = async (tmpl) => {
+    setSelectedTemplate(tmpl);
+    const updatedForm = {
+      ...formData,
+      partyA: tmpl.defaultPartyA || formData.partyA,
+      partyB: tmpl.defaultPartyB || formData.partyB
+    };
+    setFormData(updatedForm);
+
+    // Smooth scroll down to workspace
+    setTimeout(() => {
+      const el = document.getElementById('drafting-workspace');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+
+    // Immediately trigger draft generation!
+    await executeDraftGeneration(tmpl, updatedForm);
+  };
+
+  // Form submit button handler
+  const handleFormSubmit = async (e) => {
+    if (e) e.preventDefault();
+    await executeDraftGeneration(selectedTemplate, formData);
+  };
+
+  // Comprehensive Client-side Legal Draft Generator for ALL templates
+  const generateFullDraft = (tmpl, fData) => {
+    const isHi = fData.language === 'hi';
+    const isBnss = fData.criminalCode === 'BNSS';
+    const dateStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    // 1. CHEQUE BOUNCE NOTICE (138 NI ACT)
+    if (tmpl.id === 'notice-138') {
       if (isHi) {
         return `रजिस्टर्ड डाक / स्पीड पोस्ट द्वारा विधिक नोटिस
 (धारा 138 एवं 142 पराक्राम्य लिखत अधिनियम, 1881 के अंतर्गत)
 
-दिनांक: ${new Date().toLocaleDateString('en-IN')}
-स्थान: ${formData.jurisdiction}
+दिनांक: ${dateStr}
+स्थान: ${fData.jurisdiction}
 
 प्रेषक:
-${formData.advocateName}
+${fData.advocateName}
 अधिवक्ता, उच्च न्यायालय एवं जिला न्यायालय
-कार्यालय: चैम्बर नं. 412, लॉयर्स ब्लॉक, ${formData.jurisdiction}
+कार्यालय: चैम्बर नं. 412, लॉयर्स ब्लॉक, ${fData.jurisdiction}
 
 सेवा में (Noticee):
-${formData.partyB}
+${fData.partyB}
 निवासी: [विपक्षी का पूर्ण पता]
 
 विषय: धारा 138 पराक्राम्य लिखत अधिनियम, 1881 के तहत चेक अनादर (Cheque Bounce) बाबत 15 दिवसीय कानूनी नोटिस।
 
 महोदय/महोदया,
 
-मेरे मुवक्किल श्री/श्रीमती ${formData.partyA} की ओर से तथा उनके स्पष्ट निर्देशों के अधीन, मैं आपको निम्नलिखित कानूनी नोटिस प्रेषित करता हूँ:
+मेरे मुवक्किल श्री/श्रीमती ${fData.partyA} की ओर से तथा उनके स्पष्ट निर्देशों के अधीन, मैं आपको निम्नलिखित कानूनी नोटिस प्रेषित करता हूँ:
 
 1. यह कि आपने अपने वैध ऋण एवं कानूनी देयता के पूर्ण भुगतान स्वरूप मेरे मुवक्किल के पक्ष में निम्नलिखित चेक जारी किया था:
-   - चेक संख्या: ${formData.chequeNo}
-   - दिनांक: ${formData.chequeDate}
-   - राशि: ₹${formData.amount}/-
-   - बैंक: ${formData.bankName}
+   - चेक संख्या: ${fData.chequeNo}
+   - दिनांक: ${fData.chequeDate}
+   - राशि: ₹${fData.amount}/-
+   - बैंक: ${fData.bankName}
 
 2. यह कि मेरे मुवक्किल ने उक्त चेक को अपने बैंक खाते में भुगतान हेतु प्रस्तुत किया, परन्तु यह चेक बैंक द्वारा "खाते में पर्याप्त राशि नहीं (Funds Insufficient)" की टिप्पणी के साथ अनादृत (Dishonoured) कर लौटा दिया गया।
 
-3. ${formData.specificClauses ? `विशिष्ट तथ्य:\n${formData.specificClauses}\n` : ''}
+3. ${fData.specificClauses ? `विशिष्ट तथ्य एवं शर्तें:\n${fData.specificClauses}\n` : ''}
 
-अतः इस विधिक नोटिस के माध्यम से आपको निर्देशित किया जाता है कि नोटिस प्राप्ति के 15 (पंद्रह) दिनों के भीतर उक्त चेक राशि ₹${formData.amount}/- का पूर्ण भुगतान मेरे मुवक्किल को करें। ऐसा न करने पर आपके विरुद्ध सक्षम न्यायालय में आपराधिक परिवाद दायर किया जाएगा।
+अतः इस विधिक नोटिस के माध्यम से आपको निर्देशित किया जाता है कि नोटिस प्राप्ति के 15 (पंद्रह) दिनों के भीतर उक्त चेक राशि ₹${fData.amount}/- का पूर्ण भुगतान मेरे मुवक्किल को करें। ऐसा न करने पर आपके विरुद्ध सक्षम न्यायालय में आपराधिक परिवाद दायर किया जाएगा, जिसमें 2 वर्ष का कारावास एवं दोगुनी राशि का जुर्माना हो सकता है।
 
 भवदीय,
-(${formData.advocateName})
+(${fData.advocateName})
 अधिवक्ता`;
       }
 
       return `LEGAL NOTICE UNDER SECTION 138 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881
 (BY REGISTERED POST A.D. / SPEED POST)
 
-Date: ${new Date().toLocaleDateString('en-IN')}
-Place: ${formData.jurisdiction}
+Date: ${dateStr}
+Place: ${fData.jurisdiction}
 
 FROM:
-${formData.advocateName}
+${fData.advocateName}
 Advocate, High Court & District Courts
-Chamber No. 412, Lawyers Chambers Block, ${formData.jurisdiction}
+Chamber No. 412, Lawyers Chambers Block, ${fData.jurisdiction}
 
 TO (NOTICEE):
-${formData.partyB}
+${fData.partyB}
 Resident of / Having Office at: [Noticee Address Here]
 
-RE: STATUTORY DEMAND NOTICE UNDER SECTION 138 READ WITH SECTION 142 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881 IN RESPECT OF DISHONOUR OF CHEQUE NO. ${formData.chequeNo} FOR ₹${formData.amount}/-
+RE: STATUTORY DEMAND NOTICE UNDER SECTION 138 READ WITH SECTION 142 OF THE NEGOTIABLE INSTRUMENTS ACT, 1881 IN RESPECT OF DISHONOUR OF CHEQUE NO. ${fData.chequeNo} FOR ₹${fData.amount}/-
 
 Sir / Madam,
 
-Under instructions from and on behalf of my client, ${formData.partyA}, I hereby serve upon you this Statutory Legal Notice as under:
+Under instructions from and on behalf of my client, ${fData.partyA}, I hereby serve upon you this Statutory Legal Notice as under:
 
-1. That towards discharge of your legally enforceable debt and liability, you had issued Cheque No. ${formData.chequeNo} dated ${formData.chequeDate} for an amount of INR ${formData.amount}/- drawn on ${formData.bankName} in favour of my client.
+1. That towards discharge of your legally enforceable debt and liability, you had issued Cheque No. ${fData.chequeNo} dated ${fData.chequeDate} for an amount of INR ${fData.amount}/- drawn on ${fData.bankName} in favour of my client.
 
-2. That the aforesaid cheque was returned dishonoured and unpaid by the banker with the endorsement "FUNDS INSUFFICIENT".
+2. That believing your assurance, my client presented the said cheque through their banker. However, the said cheque was returned dishonoured and unpaid with the endorsement "FUNDS INSUFFICIENT".
 
-3. ${formData.specificClauses ? `SPECIFIC STIPULATIONS:\n${formData.specificClauses}\n` : ''}
+3. ${fData.specificClauses ? `SPECIFIC STIPULATIONS:\n${fData.specificClauses}\n` : ''}
 
-THEREFORE, I hereby call upon you to pay the entire cheque amount of INR ${formData.amount}/- to my client within 15 (FIFTEEN) DAYS of the receipt of this notice, failing which criminal proceedings under Section 138 of the Negotiable Instruments Act, 1881 shall be initiated against you before the competent Criminal Court at your sole risk, cost, and consequence.
+4. That by your aforesaid act, you have committed an offence punishable under Section 138 of the Negotiable Instruments Act, 1881 as well as Section 318(4) of Bharatiya Nyaya Sanhita, 2023.
+
+THEREFORE, I hereby call upon you to pay the entire cheque amount of INR ${fData.amount}/- to my client within 15 (FIFTEEN) DAYS of the receipt of this notice, failing which criminal proceedings shall be instituted against you before the competent Criminal Court at your sole risk, cost, and consequence.
 
 Yours faithfully,
-(${formData.advocateName})
+(${fData.advocateName})
 Advocate for the Complainant`;
     }
 
-    if (selectedTemplate.id.includes('bail')) {
-      return `IN THE COURT OF THE LEARNED SESSIONS JUDGE AT ${formData.jurisdiction.toUpperCase()}
+    // 2. MONEY RECOVERY NOTICE
+    if (tmpl.id === 'notice-recovery') {
+      return `LEGAL NOTICE FOR RECOVERY OF OUTSTANDING DUES
+(BY REGISTERED POST A.D. / SPEED POST)
+
+Date: ${dateStr} | Place: ${fData.jurisdiction}
+
+FROM:
+${fData.advocateName} (Advocate)
+Chamber No. 412, Lawyers Block, ${fData.jurisdiction}
+
+TO:
+${fData.partyB} (Debtor)
+
+RE: DEMAND NOTICE FOR PAYMENT OF OUTSTANDING PRINCIPAL DUES OF ₹${fData.amount}/- ALONG WITH INTEREST @ 18% P.A.
+
+Sir / Madam,
+
+Under instructions from my client, ${fData.partyA}, I state as under:
+
+1. That my client has supplied goods / provided professional services to you against valid invoices and acknowledged purchase orders.
+2. That as per the books of accounts maintained in ordinary course of business, an aggregate sum of INR ${fData.amount}/- remains overdue, unpaid, and outstanding against you.
+3. That despite repeated reminders, telephonic requests, and emails, you have intentionally neglected to clear the legitimate dues.
+${fData.specificClauses ? `4. SPECIFIC FACTS:\n${fData.specificClauses}\n` : ''}
+
+NOW THEREFORE, I call upon you to remit the total outstanding amount of INR ${fData.amount}/- together with interest @ 18% per annum within 15 days from the date of receipt hereof, failing which my client shall initiate Summary Civil Suit under Order XXXVII CPC along with insolvency/recovery proceedings before competent courts.
+
+(${fData.advocateName})
+Advocate for Creditor`;
+    }
+
+    // 3. TENANT EVICTION NOTICE
+    if (tmpl.id === 'notice-eviction') {
+      return `LEGAL NOTICE FOR EVICTION AND VACATION OF TENANTED PREMISES
+(UNDER SECTION 106 OF THE TRANSFER OF PROPERTY ACT, 1882)
+
+Date: ${dateStr} | Place: ${fData.jurisdiction}
+
+FROM: ${fData.advocateName} (Advocate for Landlord)
+TO: ${fData.partyB} (Tenant)
+
+SUBJECT: NOTICE TO VACATE PREMISES SITUATED AT ${fData.propertyAddress} AND HAND OVER VACANT PEACEFUL POSSESSION.
+
+Sir,
+Under instructions from my client, ${fData.partyA} (Landlord), I hereby serve upon you this notice:
+1. That my client is the absolute owner of the premises situated at ${fData.propertyAddress}.
+2. That you were inducted as a tenant on a monthly rental of ₹${fData.rentAmount}/- payable in advance.
+3. That you have committed persistent default in payment of rent and the tenancy term stands terminated.
+${fData.specificClauses ? `4. ADDITIONAL GROUNDS:\n${fData.specificClauses}\n` : ''}
+
+YOU ARE HEREBY CALLED UPON to quit, vacate, and hand over the vacant peaceful possession of the premises to my client within 15 (Fifteen) days, failing which an eviction suit along with claim for mesne profits and damages shall be instituted against you.
+
+(${fData.advocateName})
+Advocate for Landlord`;
+    }
+
+    // 4. REGULAR BAIL APPLICATION
+    if (tmpl.id === 'bail-regular') {
+      const secCite = isBnss ? 'SECTION 483 OF BHARATIYA NAGARIK SURAKSHA SANHITA, 2023 (BNSS)' : 'SECTION 439 OF Cr.P.C., 1973';
+      const offences = isBnss ? 'Sections 316, 318(4) of Bharatiya Nyaya Sanhita, 2023 (BNS)' : 'Sections 420, 406 Indian Penal Code, 1860';
+      return `IN THE COURT OF THE LEARNED SESSIONS JUDGE AT ${fData.jurisdiction.toUpperCase()}
 BAIL APPLICATION NO. ________ OF 2026
 
 IN THE MATTER OF:
-${formData.partyA}
+${fData.partyA}
 ...APPLICANT / ACCUSED
 
 VERSUS
 
 STATE (GOVT. OF NCT OF DELHI / STATE)
-Through SHO, Police Station: ${formData.policeStation}
+Through SHO, Police Station: ${fData.policeStation}
 ...RESPONDENT / PROSECUTION
 
-FIR No.: ${formData.firNo} | P.S.: ${formData.policeStation}
-Offences Under: ${isBnss ? 'Sections 316, 318(4) Bharatiya Nyaya Sanhita, 2023 (BNS)' : 'Sections 420, 406 Indian Penal Code, 1860'}
+CASE PARTICULARS:
+FIR No.: ${fData.firNo} | P.S.: ${fData.policeStation}
+Offences Under: ${offences}
 
-APPLICATION UNDER ${isBnss ? 'SECTION 483 OF BHARATIYA NAGARIK SURAKSHA SANHITA, 2023 (BNSS)' : 'SECTION 439 OF Cr.P.C., 1973'} FOR GRANT OF REGULAR BAIL
+APPLICATION UNDER ${secCite} FOR GRANT OF REGULAR BAIL ON BEHALF OF THE APPLICANT
 
 MOST RESPECTFULLY SHOWETH:
-1. That the Applicant is a law-abiding citizen with unblemished antecedents and has been falsely implicated in the present case due to civil animosity.
-2. That the Applicant was arrested and is languishing in judicial custody. Custodial interrogation is no longer required.
-3. That the Applicant undertakes to abide by all conditions imposed by this Hon'ble Court and furnish solvent surety.
-${formData.specificClauses ? `4. GROUNDS:\n${formData.specificClauses}\n` : ''}
+1. That the Applicant is a law-abiding citizen with clean antecedents and deep roots in society, falsely implicated in the above FIR.
+2. That the Applicant was arrested and is in judicial custody. Custodial interrogation is no longer required and investigation is substantially complete.
+3. That the dispute is fundamentally civil in nature arising from commercial dealings, to which an unjust criminal colour has been given.
+4. That the Applicant undertakes not to tamper with prosecution evidence, nor influence any witness, and will abide by all bail conditions.
+${fData.specificClauses ? `5. SPECIAL GROUNDS:\n${fData.specificClauses}\n` : ''}
 
 PRAYER:
-It is most respectfully prayed that this Hon'ble Court may graciously be pleased to release the Applicant ${formData.partyA} on bail in connection with FIR No. ${formData.firNo}, P.S. ${formData.policeStation}.
+Wherefore, it is most respectfully prayed that this Hon'ble Court may graciously be pleased to release the Applicant ${fData.partyA} on regular bail in FIR No. ${fData.firNo}, P.S. ${fData.policeStation}, on furnishing sound surety to the satisfaction of this Hon'ble Court.
 
 FILED BY:
-(${formData.advocateName})
+(${fData.advocateName})
 Advocate for the Applicant`;
     }
 
-    // Default template
+    // 5. ANTICIPATORY BAIL
+    if (tmpl.id === 'bail-anticipatory') {
+      const secCite = isBnss ? 'SECTION 482 OF BNSS, 2023' : 'SECTION 438 OF Cr.P.C., 1973';
+      return `IN THE COURT OF THE LEARNED SESSIONS JUDGE AT ${fData.jurisdiction.toUpperCase()}
+ANTICIPATORY BAIL APPLICATION NO. ________ OF 2026
+
+IN THE MATTER OF:
+${fData.partyA}
+...APPLICANT
+
+VERSUS
+
+STATE (NCT OF DELHI / STATE)
+Through SHO, Police Station: ${fData.policeStation}
+...RESPONDENT
+
+FIR No.: ${fData.firNo} | P.S.: ${fData.policeStation}
+
+APPLICATION UNDER ${secCite} FOR GRANT OF ANTICIPATORY BAIL IN THE EVENT OF ARREST
+
+MOST RESPECTFULLY SHOWETH:
+1. That the Applicant has a grave, well-founded apprehension of imminent arrest in connection with the false and motivated FIR captioned above.
+2. That the Applicant has never been involved in any criminal activity and possesses an unblemished reputation.
+3. That the Applicant undertakes to join investigation as and when directed by the Investigating Officer.
+${fData.specificClauses ? `4. GROUNDS:\n${fData.specificClauses}\n` : ''}
+
+PRAYER:
+It is most respectfully prayed that in the event of arrest in FIR No. ${fData.firNo}, P.S. ${fData.policeStation}, the Applicant ${fData.partyA} may kindly be directed to be released on Anticipatory Bail.
+
+APPLICANT THROUGH COUNSEL:
+(${fData.advocateName})`;
+    }
+
+    // 6. CIVIL PLAINT FOR MONEY RECOVERY
+    if (tmpl.id === 'plaint-money') {
+      return `IN THE COURT OF LEARNED SENIOR CIVIL JUDGE AT ${fData.jurisdiction.toUpperCase()}
+CIVIL SUIT NO. ________ OF 2026
+
+IN THE MATTER OF:
+${fData.partyA}
+...PLAINTIFF
+
+VERSUS
+
+${fData.partyB}
+...DEFENDANT
+
+SUIT UNDER ORDER VII OF THE CODE OF CIVIL PROCEDURE, 1908 FOR RECOVERY OF ₹${fData.amount}/- WITH PENDENTE LITE AND FUTURE INTEREST
+
+MOST RESPECTFULLY SHOWETH:
+1. That the Plaintiff is a registered business enterprise carrying on lawful commercial activities.
+2. That the Defendant entered into business transactions and accepted deliveries of goods against signed invoices.
+3. That an amount of INR ${fData.amount}/- remains due, payable, and outstanding despite statutory legal notice.
+4. That the cause of action arose within the territorial and pecuniary jurisdiction of this Hon'ble Court.
+${fData.specificClauses ? `5. SPECIFIC PARTICULARS:\n${fData.specificClauses}\n` : ''}
+
+PRAYER:
+The Plaintiff most respectfully prays for a decree for the sum of INR ${fData.amount}/- along with interest @ 18% p.a. from date of filing till realization, along with costs of the suit.
+
+PLAINTIFF
+THROUGH COUNSEL: (${fData.advocateName})
+
+VERIFICATION:
+Verified at ${fData.jurisdiction} on ${dateStr} that contents of paragraphs 1 to 5 are true to plaintiff's knowledge.`;
+    }
+
+    // 7. MUTUAL CONSENT DIVORCE (SEC 13B HMA)
+    if (tmpl.id === 'divorce-mutual') {
+      return `IN THE FAMILY COURT AT ${fData.jurisdiction.toUpperCase()}
+HMA PETITION NO. ________ OF 2026
+
+IN THE MATTER OF:
+1. ${fData.partyA} (First Petitioner / Husband)
+AND
+2. ${fData.partyB} (Second Petitioner / Wife)
+
+JOINT PETITION UNDER SECTION 13B(1) OF THE HINDU MARRIAGE ACT, 1955 FOR DISSOLUTION OF MARRIAGE BY MUTUAL CONSENT
+
+MOST RESPECTFULLY SHOWETH:
+1. That marriage between Petitioner No. 1 and Petitioner No. 2 was solemnized according to Hindu rites and ceremonies.
+2. That due to irreconcilable temperamental differences, the parties have been living separately for over one year.
+3. That all joint matrimonial claims including permanent alimony, maintenance, stridhan, and custody have been amicably resolved.
+4. That mutual consent has not been obtained by force, fraud, or undue influence.
+${fData.specificClauses ? `5. SETTLEMENT CLAUSES:\n${fData.specificClauses}\n` : ''}
+
+PRAYER:
+It is most respectfully prayed that this Hon'ble Court may be pleased to dissolve the marriage between the Petitioners by a decree of divorce by mutual consent.
+
+PETITIONER NO. 1: __________________
+PETITIONER NO. 2: __________________
+COUNSEL: (${fData.advocateName})`;
+    }
+
+    // 8. NON-DISCLOSURE AGREEMENT (NDA)
+    if (tmpl.id === 'agreement-nda') {
+      return `MUTUAL NON-DISCLOSURE AND CONFIDENTIALITY AGREEMENT
+
+THIS AGREEMENT is entered into on this ${dateStr} at ${fData.jurisdiction}, by and between:
+1. FIRST PARTY: ${fData.partyA}
+AND
+2. SECOND PARTY: ${fData.partyB}
+
+WHEREAS the Parties wish to evaluate prospective business collaboration and will disclose proprietary and confidential information.
+
+NOW THEREFORE, THE PARTIES AGREE AS FOLLOWS:
+1. CONFIDENTIAL INFORMATION: Includes all proprietary technical, business, financial, software, and trade secret data disclosed by either party.
+2. NON-DISCLOSURE: The receiving party shall safeguard all confidential information with standard reasonable care and not disclose to third parties without prior written consent.
+3. TERM: This agreement shall remain binding for a period of two (2) years from the Effective Date.
+${fData.specificClauses ? `4. SPECIAL COVENANTS:\n${fData.specificClauses}\n` : ''}
+5. GOVERNING LAW: Governed exclusively by the laws of India, subject to courts at ${fData.jurisdiction}.
+
+FOR FIRST PARTY: _________________________ (${fData.partyA})
+FOR SECOND PARTY: ________________________ (${fData.partyB})
+COUNSEL: _________________________________ (${fData.advocateName})`;
+    }
+
+    // 9. EMPLOYMENT AGREEMENT
+    if (tmpl.id === 'agreement-employment') {
+      return `EMPLOYMENT CONTRACT & APPOINTMENT AGREEMENT
+
+THIS EMPLOYMENT AGREEMENT is executed on ${dateStr} at ${fData.jurisdiction} between:
+EMPLOYER: ${fData.partyA}
+AND
+EMPLOYEE: ${fData.partyB}
+
+1. POSITION & DUTIES: The Employee is appointed to the designated position, performing all duties diligently in good faith.
+2. REMUNERATION: The Employee shall receive the agreed CTC/salary subject to statutory tax deductions (TDS, PF).
+3. PROBATION & NOTICE: The Employee shall be on probation for a period of three (3) months, terminable with 30 days written notice.
+4. CONFIDENTIALITY & IP ASSIGNMENT: All inventions, designs, and works created during employment shall vest exclusively in the Employer.
+${fData.specificClauses ? `5. SPECIFIC TERMS:\n${fData.specificClauses}\n` : ''}
+
+EMPLOYER: ___________________________
+EMPLOYEE: ___________________________`;
+    }
+
+    // 10. RESIDENTIAL RENT AGREEMENT
+    if (tmpl.id === 'agreement-rent') {
+      return `RESIDENTIAL RENT AGREEMENT (11 MONTHS)
+
+THIS RENT AGREEMENT is executed on this ${dateStr} at ${fData.jurisdiction} between:
+LANDLORD: ${fData.partyA}
+AND
+TENANT: ${fData.partyB}
+
+WHEREAS Landlord is the sole legal owner of residential premises: ${fData.propertyAddress}.
+
+TERMS AND CONDITIONS:
+1. TENURE: Fixed 11-month period commencing from ${dateStr}.
+2. RENT: Monthly rent of ₹${fData.rentAmount}/- payable on or before 7th of each month.
+3. SECURITY DEPOSIT: Refundable security deposit of ₹${fData.securityDeposit}/- received by Landlord.
+4. UTILITIES: Tenant shall directly pay actual electricity and water charges as per meter readings.
+5. USE: Strictly residential use; sub-letting is strictly prohibited.
+${fData.specificClauses ? `6. SPECIAL TERMS:\n${fData.specificClauses}\n` : ''}
+
+LANDLORD: ___________________________ (${fData.partyA})
+TENANT: _____________________________ (${fData.partyB})
+WITNESS 1: __________________________
+WITNESS 2: __________________________`;
+    }
+
+    // 11. GENERAL SWORN AFFIDAVIT
+    if (tmpl.id === 'affidavit-general') {
+      return `GENERAL SWORN AFFIDAVIT ON OATH
+(TO BE NOTARIZED ON NON-JUDICIAL STAMP PAPER)
+
+BEFORE THE NOTARY PUBLIC / EXECUTIVE MAGISTRATE AT ${fData.jurisdiction.toUpperCase()}
+
+I, ${fData.partyA}, Resident of [Permanent Residential Address], do hereby solemnly affirm and state on oath as under:
+
+1. That I am a bona fide citizen of India and competent to depose to this affidavit.
+2. That all particulars, declarations, and statements made herein are based on my true personal knowledge and records.
+3. That [Specific statements of the matter].
+${fData.specificClauses ? `4. SPECIFIC DECLARATIONS:\n${fData.specificClauses}\n` : ''}
+5. That no material facts have been suppressed or misrepresented herein.
+
+DEPONENT: ___________________________ (${fData.partyA})
+
+VERIFICATION:
+Verified at ${fData.jurisdiction} on ${dateStr} that contents of paragraphs 1 to 5 are true and correct.
+DEPONENT
+IDENTIFIED BY COUNSEL: (${fData.advocateName})`;
+    }
+
+    // DEFAULT / GENERIC LEGAL DRAFT
     return `LEGAL DOCUMENT DRAFT
-DOCUMENT: ${selectedTemplate.title.toUpperCase()}
-DATE: ${new Date().toLocaleDateString('en-IN')} | JURISDICTION: ${formData.jurisdiction}
+TYPE: ${tmpl.title.toUpperCase()}
+DATE: ${dateStr} | JURISDICTION: ${fData.jurisdiction}
 
-FIRST PARTY: ${formData.partyA}
-SECOND PARTY: ${formData.partyB}
-ADVOCATE / LEGAL COUNSEL: ${formData.advocateName}
+FIRST PARTY: ${fData.partyA}
+SECOND PARTY: ${fData.partyB}
+COUNSEL: ${fData.advocateName}
 
-WHEREAS the Parties have agreed to execute this formal legal instrument under the governing laws of India.
-
+WHEREAS the Parties have agreed to execute this formal legal instrument under Indian Law.
 NOW THIS DEED WITNESSETH AS FOLLOWS:
-1. The Parties acknowledge the legal validity, consideration, and obligations governing ${selectedTemplate.title}.
-2. Each Party warrants its full legal authority and capacity to enter into and execute this document.
-${formData.specificClauses ? `3. SPECIAL TERMS & CLAUSES:\n${formData.specificClauses}\n` : ''}
-4. Any dispute arising under this instrument shall be subject to the exclusive jurisdiction of the competent courts at ${formData.jurisdiction}.
+1. Both Parties agree to the statutory covenants and rights governing ${tmpl.title}.
+2. Each Party represents that it has full legal capacity and competence to execute this instrument.
+${fData.specificClauses ? `3. SPECIAL STIPULATIONS:\n${fData.specificClauses}\n` : ''}
+4. Governed exclusively by the laws of India, subject to the jurisdiction of competent courts at ${fData.jurisdiction}.
 
-IN WITNESS WHEREOF, the Parties have affixed their signatures.
-
-FIRST PARTY: _________________________ (${formData.partyA})
-SECOND PARTY: ________________________ (${formData.partyB})
-LEGAL COUNSEL: _______________________ (${formData.advocateName})`;
+FIRST PARTY: _________________________ (${fData.partyA})
+SECOND PARTY: ________________________ (${fData.partyB})
+COUNSEL: _____________________________ (${fData.advocateName})`;
   };
 
   // Save Document to Supabase
@@ -537,11 +807,12 @@ LEGAL COUNSEL: _______________________ (${formData.advocateName})`;
       <div className="ds-templates-row">
         {filteredTemplates.map(tmpl => {
           const IconComp = tmpl.icon || FileText;
+          const isSelected = selectedTemplate.id === tmpl.id;
           return (
             <div 
               key={tmpl.id} 
-              className={`ds-template-card ${selectedTemplate.id === tmpl.id ? 'active' : ''}`}
-              onClick={() => handleSelectTemplate(tmpl)}
+              className={`ds-template-card ${isSelected ? 'active' : ''}`}
+              onClick={() => handleSelectAndDraft(tmpl)}
             >
               <div className="ds-template-top">
                 <div className="ds-template-icon">
@@ -551,16 +822,24 @@ LEGAL COUNSEL: _______________________ (${formData.advocateName})`;
               </div>
               <div className="ds-template-title">{formData.language === 'hi' ? tmpl.titleHi : tmpl.title}</div>
               <div className="ds-template-desc">{tmpl.desc}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 700, color: '#10b981', marginTop: '0.25rem' }}>
-                Draft Now <ChevronRight size={13} />
-              </div>
+              <button 
+                type="button"
+                className={`ds-draft-now-btn ${isGenerating && isSelected ? 'loading' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectAndDraft(tmpl);
+                }}
+              >
+                <span>{isGenerating && isSelected ? 'Drafting...' : 'Draft Now'}</span>
+                <ChevronRight size={14} />
+              </button>
             </div>
           );
         })}
       </div>
 
       {/* Studio Workspace: Left Form & Right Paper Editor */}
-      <div className="ds-workspace-grid">
+      <div id="drafting-workspace" className="ds-workspace-grid">
         
         {/* Left Form Panel */}
         <div className="ds-form-panel">
@@ -576,14 +855,22 @@ LEGAL COUNSEL: _______________________ (${formData.advocateName})`;
                 <button 
                   type="button" 
                   className={`ds-pill-opt ${formData.language === 'en' ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, language: 'en' })}
+                  onClick={() => {
+                    const updated = { ...formData, language: 'en' };
+                    setFormData(updated);
+                    executeDraftGeneration(selectedTemplate, updated);
+                  }}
                 >
                   English
                 </button>
                 <button 
                   type="button" 
                   className={`ds-pill-opt ${formData.language === 'hi' ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, language: 'hi' })}
+                  onClick={() => {
+                    const updated = { ...formData, language: 'hi' };
+                    setFormData(updated);
+                    executeDraftGeneration(selectedTemplate, updated);
+                  }}
                 >
                   Hindi
                 </button>
@@ -596,7 +883,11 @@ LEGAL COUNSEL: _______________________ (${formData.advocateName})`;
                 <button 
                   type="button" 
                   className={`ds-pill-opt ${formData.criminalCode === 'BNSS' ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, criminalCode: 'BNSS' })}
+                  onClick={() => {
+                    const updated = { ...formData, criminalCode: 'BNSS' };
+                    setFormData(updated);
+                    executeDraftGeneration(selectedTemplate, updated);
+                  }}
                   title="Bharatiya Nyaya Sanhita / BNSS 2023"
                 >
                   BNSS / BNS (2023)
@@ -604,7 +895,11 @@ LEGAL COUNSEL: _______________________ (${formData.advocateName})`;
                 <button 
                   type="button" 
                   className={`ds-pill-opt ${formData.criminalCode === 'CrPC' ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, criminalCode: 'CrPC' })}
+                  onClick={() => {
+                    const updated = { ...formData, criminalCode: 'CrPC' };
+                    setFormData(updated);
+                    executeDraftGeneration(selectedTemplate, updated);
+                  }}
                   title="Traditional CrPC / IPC"
                 >
                   CrPC / IPC
@@ -810,7 +1105,7 @@ LEGAL COUNSEL: _______________________ (${formData.advocateName})`;
           <button 
             type="button" 
             className="ds-generate-btn" 
-            onClick={handleGenerate}
+            onClick={handleFormSubmit}
             disabled={isGenerating || !formData.partyA || !formData.partyB}
           >
             {isGenerating ? (
