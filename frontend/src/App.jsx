@@ -20,15 +20,30 @@ import CreateAgreement from './components/CreateAgreement'
 import DraftingStudio from './components/DraftingStudio'
 import Settings from './components/Settings'
 import SigningPortal from './components/SigningPortal'
+import CGPayStudio from './components/CGPayStudio'
 
 function App() {
   const [view, setView] = useState(() => {
     if (typeof window !== 'undefined') {
-      if (window.location.search.includes('view=app') || window.location.hash === '#dashboard') return 'app';
+      if (window.location.search.includes('view=app') || 
+          window.location.hash === '#dashboard' || 
+          window.location.pathname.startsWith('/drafting') ||
+          window.location.pathname.startsWith('/create') ||
+          window.location.pathname.startsWith('/cgpay')) return 'app';
     }
     return 'landing';
   });
-  const [dashboardView, setDashboardView] = useState('overview'); // 'overview', 'compare', 'chat', 'drafting', etc.
+  const [dashboardView, setDashboardView] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab) return tab;
+      if (window.location.pathname.startsWith('/drafting')) return 'drafting';
+      if (window.location.pathname.startsWith('/create')) return 'create';
+      if (window.location.pathname.startsWith('/cgpay')) return 'cgpay';
+    }
+    return 'overview';
+  }); // 'overview', 'compare', 'chat', 'drafting', etc.
   const [isSigningRoute, setIsSigningRoute] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -36,8 +51,22 @@ function App() {
     if (window.location.pathname.startsWith('/sign/')) {
       setIsSigningRoute(true);
     }
-    if (window.location.search.includes('view=app') || window.location.hash === '#dashboard') {
+    if (window.location.search.includes('view=app') || 
+        window.location.hash === '#dashboard' || 
+        window.location.pathname.startsWith('/drafting') || 
+        window.location.pathname.startsWith('/create') ||
+        window.location.pathname.startsWith('/cgpay') ||
+        window.location.search.includes('tab=')) {
       setView('app');
+    }
+    if (window.location.pathname.startsWith('/drafting')) {
+      setDashboardView('drafting');
+    }
+    if (window.location.pathname.startsWith('/create')) {
+      setDashboardView('create');
+    }
+    if (window.location.pathname.startsWith('/cgpay')) {
+      setDashboardView('cgpay');
     }
   }, []);
 
@@ -68,7 +97,12 @@ function App() {
           } else {
             setUser(null);
             setIsLoggedIn(false);
-            const isPreview = window.location.search.includes('view=app') || window.location.hash === '#dashboard';
+            const isPreview = window.location.search.includes('view=app') || 
+                              window.location.hash === '#dashboard' || 
+                              window.location.pathname.startsWith('/drafting') ||
+                              window.location.pathname.startsWith('/create') ||
+                              window.location.pathname.startsWith('/cgpay') ||
+                              window.location.search.includes('tab=');
             if (!isPreview) {
               setView('landing');
             }
@@ -208,6 +242,8 @@ function App() {
         <CreateAgreement user={user} onNavigate={setDashboardView} />
       ) : dashboardView === 'drafting' ? (
         <DraftingStudio user={user} onNavigate={setDashboardView} />
+      ) : dashboardView === 'cgpay' ? (
+        <CGPayStudio user={user} />
       ) : dashboardView === 'settings' ? (
         <Settings user={user} />
       ) : (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   MoreVertical, Search, Edit, Folder, FileText, 
-  Files, FilePlus, ChevronDown, Plus, Sparkles, User, LayoutDashboard, Settings, Trash2, MessageSquare, PenTool
+  Files, FilePlus, ChevronDown, Plus, Sparkles, User, LayoutDashboard, Settings, Trash2, MessageSquare, PenTool, ShieldCheck
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './AppSidebar.css';
@@ -69,6 +69,13 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
         <a href="#" className={`nav-item-link ${activeView === 'drafting' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if(onNavigate) onNavigate('drafting'); }}>
           <PenTool size={18} />
           <span>Drafting</span>
+        </a>
+        <a href="#" className={`nav-item-link ${activeView === 'cgpay' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if(onNavigate) onNavigate('cgpay'); }}>
+          <ShieldCheck size={18} color="#0a3871" />
+          <span>CGPay API &amp; eSign</span>
+          <span style={{ fontSize: '0.62rem', background: '#0a3871', color: '#ffffff', padding: '1px 6px', borderRadius: '100px', fontWeight: 800, marginLeft: 'auto' }}>
+            TEST
+          </span>
         </a>
       </nav>
 

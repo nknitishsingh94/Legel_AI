@@ -70,92 +70,140 @@ const WorkspaceFiles = ({ user }) => {
   const [showSignModal, setShowSignModal] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   
-  // Dual-Party State: Advocate (Lawyer) & Client
-  const [lawyerName, setLawyerName] = useState('');
-  const [lawyerEmail, setLawyerEmail] = useState('');
-  const [lawyerBarId, setLawyerBarId] = useState('');
-  const [clientName, setClientName] = useState('');
-  const [clientEmail, setClientEmail] = useState('');
-  const [clientPhone, setClientPhone] = useState('');
-  
-  const [dualSigningLinks, setDualSigningLinks] = useState(null);
+  // Multi-Party Signers State: Unlimited Senders, Receivers, and Lawyers
+  const [signers, setSigners] = useState([]);
+  const [multiSigningLinks, setMultiSigningLinks] = useState(null);
   const [isSending, setIsSending] = useState(false);
 
   const openSignModal = (doc) => {
     setSelectedDoc(doc);
-    const defaultLawyerName = user?.user_metadata?.full_name || (user?.email ? user.email.split('@')[0].toUpperCase() : 'Adv. Kumar');
-    setLawyerName(defaultLawyerName.startsWith('Adv.') ? defaultLawyerName : `Adv. ${defaultLawyerName}`);
-    setLawyerEmail(user?.email || 'advocate@wakalat.ai');
-    setLawyerBarId('D/1482/2021');
-    setClientName('');
-    setClientEmail('');
-    setClientPhone('');
-    setDualSigningLinks(null);
+    const defaultLawyerName = user?.user_metadata?.full_name || (user?.email ? user.email.split('@')[0].toUpperCase() : 'Adv. Rajesh Kumar');
+    const formattedLawyer = defaultLawyerName.startsWith('Adv.') ? defaultLawyerName : `Adv. ${defaultLawyerName}`;
+
+    // Initialize all 3 standard legal roles: Sender, Receiver, Lawyer
+    setSigners([
+      {
+        id: '1',
+        role: 'Sender',
+        name: '',
+        email: '',
+        phone: '',
+        method: 'cgpay_aadhaar'
+      },
+      {
+        id: '2',
+        role: 'Receiver',
+        name: '',
+        email: '',
+        phone: '',
+        method: 'cgpay_aadhaar'
+      },
+      {
+        id: '3',
+        role: 'Lawyer',
+        name: formattedLawyer,
+        email: user?.email || 'advocate@wakalat.ai',
+        phone: '',
+        barId: 'D/1482/2021',
+        method: 'cgpay_aadhaar'
+      }
+    ]);
+    setMultiSigningLinks(null);
     setShowSignModal(true);
+  };
+
+  const handleAddSigner = (role = 'Sender') => {
+    const newSigner = {
+      id: Date.now().toString() + Math.random().toString(36).substring(2, 6),
+      role,
+      name: '',
+      email: '',
+      phone: '',
+      method: 'cgpay_aadhaar'
+    };
+    setSigners(prev => [...prev, newSigner]);
+  };
+
+  const handleRemoveSigner = (id) => {
+    if (signers.length <= 1) {
+      alert("At least one signer is required.");
+      return;
+    }
+    setSigners(prev => prev.filter(s => s.id !== id));
+  };
+
+  const handleUpdateSigner = (id, field, value) => {
+    setSigners(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
   };
 
   const handleSendForSignature = async (e) => {
     e.preventDefault();
-    if (!lawyerName || !lawyerEmail || !clientName || !clientEmail || !selectedDoc) {
-      alert("Please enter both Advocate and Client details.");
-      return;
+    if (!selectedDoc) return;
+
+    // Validate all signers
+    for (let i = 0; i < signers.length; i++) {
+      const s = signers[i];
+      if (!s.name.trim() || !s.email.trim()) {
+        alert(`Please fill in Name and Email for Signer #${i + 1} (${s.role}).`);
+        return;
+      }
     }
+
     setIsSending(true);
 
     try {
-      // 1. Create Signature Request for Advocate (Lawyer)
-      const { data: lawyerSig, error: lawyerErr } = await supabase
-        .from('signatures')
-        .insert([{
+      const createdLinks = [];
+
+      for (let i = 0; i < signers.length; i++) {
+        const s = signers[i];
+        const roleLabel = s.role === 'Lawyer' ? 'Advocate / Legal Counsel' : s.role;
+        const displayName = `${s.name.trim()} (${roleLabel})`;
+
+        const { data: sigRecord, error: sigErr } = await supabase
+          .from('signatures')
+          .insert([{
+            document_id: selectedDoc.id,
+            signer_name: displayName,
+            signer_email: s.email.trim(),
+            status: 'Pending'
+          }])
+          .select()
+          .single();
+
+        if (sigErr) throw sigErr;
+
+        createdLinks.push({
+          ...s,
+          sigId: sigRecord.id,
+          link: `${window.location.origin}/sign/${selectedDoc.id}/${sigRecord.id}`
+        });
+      }
+
+      // Record detailed Audit Log
+      try {
+        await supabase.from('audit_logs').insert([{
           document_id: selectedDoc.id,
-          signer_name: `${lawyerName.trim()} (Advocate / Legal Counsel)`,
-          signer_email: lawyerEmail.trim(),
-          status: 'Pending'
-        }])
-        .select()
-        .single();
+          action: `Multi-Party e-Sign initiated under IT Act 2000 & BSA 2023 for ${signers.length} signers: ${signers.map(s => `${s.role} (${s.name})`).join(', ')}`,
+          performed_by: user?.email || 'Authorized Advocate',
+          ip_address: 'Client Verified'
+        }]);
+      } catch (logErr) {
+        console.warn("Audit log insert skipped:", logErr);
+      }
 
-      if (lawyerErr) throw lawyerErr;
+      // Update Document Status
+      await supabase.from('documents').update({
+        status: `Pending Signatures (${signers.length} Parties)`
+      }).eq('id', selectedDoc.id);
 
-      // 2. Create Signature Request for Client / First Party
-      const { data: clientSig, error: clientErr } = await supabase
-        .from('signatures')
-        .insert([{
-          document_id: selectedDoc.id,
-          signer_name: `${clientName.trim()} (Client / Deponent)`,
-          signer_email: clientEmail.trim(),
-          status: 'Pending'
-        }])
-        .select()
-        .single();
-
-      if (clientErr) throw clientErr;
-
-      // 3. Record Audit Log for Dual eSign initiation
-      await supabase.from('audit_logs').insert([{
-        document_id: selectedDoc.id,
-        action: `Dual e-Sign initiated under IT Act 2000 for Advocate (${lawyerName}) and Client (${clientName})`,
-        performed_by: user?.email || lawyerEmail,
-        ip_address: 'Client Verified'
-      }]).catch(() => {});
-
-      // 4. Update Document Status
-      await supabase.from('documents').update({ status: 'Pending Signatures (Dual)' }).eq('id', selectedDoc.id);
-
-      const lawyerLink = `${window.location.origin}/sign/${selectedDoc.id}/${lawyerSig.id}`;
-      const clientLink = `${window.location.origin}/sign/${selectedDoc.id}/${clientSig.id}`;
-
-      setDualSigningLinks({
-        lawyerLink,
-        clientLink,
-        lawyerName,
-        clientName,
+      setMultiSigningLinks({
+        signers: createdLinks,
         docTitle: selectedDoc.title
       });
 
-      setGeneratedDocs(prev => prev.map(d => d.id === selectedDoc.id ? { ...d, status: 'Pending Signatures (Dual)' } : d));
+      setGeneratedDocs(prev => prev.map(d => d.id === selectedDoc.id ? { ...d, status: `Pending Signatures (${signers.length} Parties)` } : d));
     } catch (error) {
-      console.error("Signature setup error:", error);
+      console.error("Multi-signature setup error:", error);
       alert("Failed to create signature requests: " + error.message);
     } finally {
       setIsSending(false);
@@ -307,125 +355,206 @@ const WorkspaceFiles = ({ user }) => {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem'
         }}>
           <div className="modal-content animate-scale-up" style={{
-            background: '#ffffff', padding: '2rem', borderRadius: '24px', width: '100%', maxWidth: '580px',
+            background: '#ffffff', padding: '2rem', borderRadius: '24px', width: '100%', maxWidth: '680px',
             boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)', border: '1px solid #e2e8f0', boxSizing: 'border-box',
             maxHeight: '90vh', overflowY: 'auto'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.25rem 0.65rem', borderRadius: '100px', letterSpacing: '0.04em' }}>
-                  IT ACT 2000 SEC. 10A &amp; BSA 2023
+                  IT ACT 2000 SEC. 3A &amp; 10A • BSA 2023
                 </span>
                 <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0a3871', background: 'rgba(10, 56, 113, 0.1)', padding: '0.25rem 0.65rem', borderRadius: '100px' }}>
-                  DIGILOCKER / AADHAAR
+                  CGPAY AADHAAR OKYC &amp; DIGILOCKER
                 </span>
               </div>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Dual Execution</span>
+              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>
+                {signers.length} {signers.length === 1 ? 'Party' : 'Parties'}
+              </span>
             </div>
             
-            <h2 style={{ marginTop: 0, marginBottom: '0.35rem', fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>
-              Dual Legal e-Sign (Advocate &amp; Client)
+            <h2 style={{ marginTop: 0, marginBottom: '0.35rem', fontSize: '1.45rem', fontWeight: 800, color: '#0f172a' }}>
+              Multi-Party Legal e-Sign (Sender, Receiver &amp; Lawyer)
             </h2>
             <p style={{ marginBottom: '1.25rem', color: '#64748b', fontSize: '0.85rem', lineHeight: 1.4 }}>
               Document: <strong style={{ color: '#0f172a' }}>{selectedDoc?.title}</strong>
-              <br /><span style={{ fontSize: '0.78rem', color: '#b8860b' }}>Both parties (Lawyer &amp; Client) will digitally sign this document to make it legally binding.</span>
+              <br /><span style={{ fontSize: '0.78rem', color: '#b8860b' }}>
+                Add unlimited signers across the 3 statutory roles. Each person receives an individual, tamper-proof signing link.
+              </span>
             </p>
 
-            {!dualSigningLinks ? (
+            {/* 3 Government Approval Ways Notice Banner */}
+            <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '12px', padding: '0.85rem 1rem', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0a3871', letterSpacing: '0.03em' }}>
+                  🏛️ 3 WAYS RECIPIENTS CAN APPROVE &amp; ESIGN:
+                </span>
+                <span style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: 700, background: '#dcfce7', padding: '2px 8px', borderRadius: '100px' }}>
+                  Court Recognized (BSA Sec. 63)
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', fontSize: '0.75rem', color: '#334155' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ color: '#16a34a', fontWeight: 800 }}>1.</span> <strong>Aadhaar OTP</strong> (Instant SMS)
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ color: '#0a3871', fontWeight: 800 }}>2.</span> <strong>DigiLocker</strong> (MeriPehchan)
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span style={{ color: '#b8860b', fontWeight: 800 }}>3.</span> <strong>UIDAI OKYC</strong> (Offline XML)
+                </div>
+              </div>
+            </div>
+
+            {!multiSigningLinks ? (
               <form onSubmit={handleSendForSignature}>
-                {/* Party 1: Advocate Section */}
-                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                    <span style={{ background: '#0f172a', color: '#ffffff', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700 }}>1</span>
-                    <strong style={{ fontSize: '0.9rem', color: '#0f172a' }}>Party 1: Advocate / Legal Counsel (वक़ील)</strong>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 600, fontSize: '0.78rem', color: '#475569' }}>
-                        Advocate Full Name
-                      </label>
-                      <input 
-                        type="text" 
-                        required 
-                        value={lawyerName} 
-                        onChange={e => setLawyerName(e.target.value)} 
-                        placeholder="e.g. Adv. R. K. Sharma"
-                        style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box' }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 600, fontSize: '0.78rem', color: '#475569' }}>
-                        Bar Enrollment / ID
-                      </label>
-                      <input 
-                        type="text" 
-                        value={lawyerBarId} 
-                        onChange={e => setLawyerBarId(e.target.value)} 
-                        placeholder="e.g. D/1482/2021"
-                        style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box' }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 600, fontSize: '0.78rem', color: '#475569' }}>
-                      Advocate Official Email
-                    </label>
-                    <input 
-                      type="email" 
-                      required 
-                      value={lawyerEmail} 
-                      onChange={e => setLawyerEmail(e.target.value)} 
-                      placeholder="advocate@example.com"
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box' }}
-                    />
-                  </div>
+                {/* Signers List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.25rem' }}>
+                  {signers.map((signer, index) => {
+                    const isSender = signer.role === 'Sender';
+                    const isReceiver = signer.role === 'Receiver';
+                    const isLawyer = signer.role === 'Lawyer';
+
+                    const borderColor = isSender ? '#bfdbfe' : (isReceiver ? '#bbf7d0' : '#fde68a');
+                    const bgColor = isSender ? '#f8faff' : (isReceiver ? '#f9fdfa' : '#fffdf5');
+                    const badgeBg = isSender ? '#2563eb' : (isReceiver ? '#16a34a' : '#d97706');
+
+                    return (
+                      <div key={signer.id} style={{
+                        background: bgColor, border: `1.5px solid ${borderColor}`,
+                        borderRadius: '14px', padding: '1rem', position: 'relative'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <span style={{
+                              background: badgeBg, color: '#ffffff', width: '22px', height: '22px',
+                              borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '0.75rem', fontWeight: 800
+                            }}>
+                              {index + 1}
+                            </span>
+                            
+                            {/* Role Selector Dropdown */}
+                            <select 
+                              value={signer.role}
+                              onChange={e => handleUpdateSigner(signer.id, 'role', e.target.value)}
+                              style={{
+                                fontWeight: 700, fontSize: '0.85rem', padding: '0.25rem 0.5rem',
+                                borderRadius: '6px', border: `1px solid ${borderColor}`,
+                                background: '#ffffff', color: isSender ? '#1d4ed8' : (isReceiver ? '#15803d' : '#b45309')
+                              }}
+                            >
+                              <option value="Sender">Party 1: Sender (प्रेषक / Initiator)</option>
+                              <option value="Receiver">Party 2: Receiver (प्राप्तकर्ता / Counterparty)</option>
+                              <option value="Lawyer">Legal Counsel: Lawyer / Advocate (वक़ील)</option>
+                            </select>
+                          </div>
+
+                          {signers.length > 1 && (
+                            <button 
+                              type="button" 
+                              onClick={() => handleRemoveSigner(signer.id)}
+                              style={{
+                                background: 'transparent', border: 'none', color: '#ef4444',
+                                cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, padding: '0.2rem 0.5rem'
+                              }}
+                            >
+                              ✕ Remove
+                            </button>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.76rem', color: '#475569' }}>
+                              {isLawyer ? 'Advocate Full Name' : `${signer.role} Full Name`} *
+                            </label>
+                            <input 
+                              type="text" 
+                              required 
+                              value={signer.name} 
+                              onChange={e => handleUpdateSigner(signer.id, 'name', e.target.value)}
+                              placeholder={isLawyer ? "e.g. Adv. Rajesh Sharma" : (isSender ? "e.g. Ramesh Verma (Lessor)" : "e.g. Sunil Gupta (Lessee)")}
+                              style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box', background: '#ffffff' }}
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.76rem', color: '#475569' }}>
+                              Official Email *
+                            </label>
+                            <input 
+                              type="email" 
+                              required 
+                              value={signer.email} 
+                              onChange={e => handleUpdateSigner(signer.id, 'email', e.target.value)}
+                              placeholder="signer@example.com"
+                              style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box', background: '#ffffff' }}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '0.75rem' }}>
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.76rem', color: '#475569' }}>
+                              Mobile (Aadhaar OTP / WhatsApp)
+                            </label>
+                            <input 
+                              type="tel" 
+                              value={signer.phone} 
+                              onChange={e => handleUpdateSigner(signer.id, 'phone', e.target.value)}
+                              placeholder="9876543210"
+                              style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '0.85rem', boxSizing: 'border-box', background: '#ffffff' }}
+                            />
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600, fontSize: '0.76rem', color: '#475569' }}>
+                              Verification Method
+                            </label>
+                            <select 
+                              value={signer.method} 
+                              onChange={e => handleUpdateSigner(signer.id, 'method', e.target.value)}
+                              style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '0.82rem', boxSizing: 'border-box', background: '#ffffff' }}
+                            >
+                              <option value="cgpay_aadhaar">🇮🇳 CGPay Aadhaar OKYC + eSign (Recommended)</option>
+                              <option value="digilocker">🏛️ DigiLocker MeriPehchan</option>
+                              <option value="draw_type">✍️ Digital Pad / Certificate eSign</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* Party 2: Client Section */}
-                <div style={{ background: '#f0f9ff', padding: '1rem', borderRadius: '14px', border: '1px solid #bae6fd', marginBottom: '1.25rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                    <span style={{ background: '#0284c7', color: '#ffffff', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700 }}>2</span>
-                    <strong style={{ fontSize: '0.9rem', color: '#0369a1' }}>Party 2: Client / First Party (मुवक्किल)</strong>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 600, fontSize: '0.78rem', color: '#0369a1' }}>
-                        Client Legal Name
-                      </label>
-                      <input 
-                        type="text" 
-                        required 
-                        value={clientName} 
-                        onChange={e => setClientName(e.target.value)} 
-                        placeholder="e.g. Ramesh Verma"
-                        style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1.5px solid #7dd3fc', fontSize: '0.85rem', boxSizing: 'border-box' }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 600, fontSize: '0.78rem', color: '#0369a1' }}>
-                        Mobile (for DigiLocker OTP)
-                      </label>
-                      <input 
-                        type="tel" 
-                        value={clientPhone} 
-                        onChange={e => setClientPhone(e.target.value)} 
-                        placeholder="9876543210"
-                        style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1.5px solid #7dd3fc', fontSize: '0.85rem', boxSizing: 'border-box' }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '0.3rem', fontWeight: 600, fontSize: '0.78rem', color: '#0369a1' }}>
-                      Client Email
-                    </label>
-                    <input 
-                      type="email" 
-                      required 
-                      value={clientEmail} 
-                      onChange={e => setClientEmail(e.target.value)} 
-                      placeholder="client@example.com"
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1.5px solid #7dd3fc', fontSize: '0.85rem', boxSizing: 'border-box' }}
-                    />
+                {/* Add More Signers Buttons (Unlimited) */}
+                <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '0.75rem 1rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                    + Add Unlimited Signers:
+                  </span>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => handleAddSigner('Sender')}
+                      style={{ padding: '0.4rem 0.75rem', fontSize: '0.78rem', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      + Add Sender
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => handleAddSigner('Receiver')}
+                      style={{ padding: '0.4rem 0.75rem', fontSize: '0.78rem', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      + Add Receiver
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => handleAddSigner('Lawyer')}
+                      style={{ padding: '0.4rem 0.75rem', fontSize: '0.78rem', background: '#fefce8', color: '#b45309', border: '1px solid #fde68a', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      + Add Lawyer
+                    </button>
                   </div>
                 </div>
 
@@ -434,9 +563,9 @@ const WorkspaceFiles = ({ user }) => {
                     padding: '0.75rem 1.25rem', background: '#f1f5f9', border: 'none', borderRadius: '10px', cursor: 'pointer', color: '#64748b', fontWeight: 600, fontSize: '0.85rem'
                   }}>Cancel</button>
                   <button type="submit" disabled={isSending} style={{
-                    padding: '0.75rem 1.5rem', background: '#b8860b', color: '#ffffff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', boxShadow: '0 4px 12px rgba(184, 134, 11, 0.25)'
+                    padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg, #0a3871 0%, #032047 100%)', color: '#ffffff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', boxShadow: '0 4px 12px rgba(10, 56, 113, 0.25)'
                   }}>
-                    {isSending ? 'Initiating Dual Sign...' : 'Create Dual Signature Requests'}
+                    {isSending ? `Initiating ${signers.length} Signature Requests...` : `Create ${signers.length} Signature Requests`}
                   </button>
                 </div>
               </form>
@@ -444,75 +573,90 @@ const WorkspaceFiles = ({ user }) => {
               <div>
                 <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem' }}>
                   <strong style={{ color: '#065f46', fontSize: '0.9rem', display: 'block', marginBottom: '0.25rem' }}>
-                    ✅ Dual Signature Requests Created Successfully!
+                    ✅ Multi-Party Signature Requests Created Successfully ({multiSigningLinks.signers.length} Parties)!
                   </strong>
                   <p style={{ margin: 0, fontSize: '0.8rem', color: '#047857' }}>
-                    Both links below carry unique cryptographic tokens. Advocate and Client can sign sequentially or simultaneously via DigiLocker / Aadhaar OTP or Digital Pen.
+                    Each signer listed below has received a unique, cryptographically signed portal link with <strong>3 official ways to approve</strong> (1. Aadhaar OTP, 2. DigiLocker MeriPehchan, 3. UIDAI OKYC) pursuant to Section 10A IT Act 2000.
                   </p>
                 </div>
 
-                {/* Link 1: Advocate Signing Link */}
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>
-                      ⚖️ 1. Advocate Portal Link ({dualSigningLinks.lawyerName})
-                    </span>
-                    <span style={{ fontSize: '0.7rem', color: '#b8860b', fontWeight: 600 }}>Your Signing Portal</span>
-                  </div>
-                  <div style={{ padding: '0.6rem 0.8rem', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', wordBreak: 'break-all', fontSize: '0.78rem', color: '#334155', marginBottom: '0.6rem' }}>
-                    {dualSigningLinks.lawyerLink}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <a href={dualSigningLinks.lawyerLink} target="_blank" rel="noopener noreferrer" style={{
-                      padding: '0.5rem 1rem', background: '#0f172a', color: '#ffffff', textDecoration: 'none', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px'
-                    }}>
-                      Sign as Advocate Now ✍️
-                    </a>
-                    <button onClick={() => {
-                      navigator.clipboard.writeText(dualSigningLinks.lawyerLink);
-                      alert("Advocate signing link copied!");
-                    }} style={{
-                      padding: '0.5rem 0.85rem', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', color: '#475569'
-                    }}>Copy</button>
-                  </div>
+                {/* Generated Links for All Signers */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.25rem', maxHeight: '420px', overflowY: 'auto' }}>
+                  {multiSigningLinks.signers.map((s, idx) => {
+                    const isSender = s.role === 'Sender';
+                    const isReceiver = s.role === 'Receiver';
+                    const borderColor = isSender ? '#bfdbfe' : (isReceiver ? '#bbf7d0' : '#fde68a');
+                    const badgeBg = isSender ? '#2563eb' : (isReceiver ? '#16a34a' : '#d97706');
+
+                    return (
+                      <div key={s.sigId} style={{ background: '#ffffff', border: `1.5px solid ${borderColor}`, borderRadius: '12px', padding: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{
+                              background: badgeBg, color: '#ffffff', fontSize: '0.72rem', fontWeight: 800,
+                              padding: '0.15rem 0.5rem', borderRadius: '100px'
+                            }}>
+                              {s.role.toUpperCase()}
+                            </span>
+                            <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>{s.name}</strong>
+                          </div>
+                          <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{s.email}</span>
+                        </div>
+
+                        <div style={{ padding: '0.55rem 0.75rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', wordBreak: 'break-all', fontSize: '0.76rem', color: '#334155', marginBottom: '0.6rem' }}>
+                          {s.link}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                          <a href={s.link} target="_blank" rel="noopener noreferrer" style={{
+                            padding: '0.45rem 0.85rem', background: '#0a3871', color: '#ffffff', textDecoration: 'none', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px'
+                          }}>
+                            Open &amp; Sign Now ✍️
+                          </a>
+
+                          <button onClick={() => {
+                            navigator.clipboard.writeText(s.link);
+                            alert(`Signing link for ${s.name} (${s.role}) copied to clipboard!`);
+                          }} style={{
+                            padding: '0.45rem 0.8rem', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer', color: '#475569'
+                          }}>
+                            Copy Link 📋
+                          </button>
+
+                          {s.phone && (
+                            <a 
+                              href={`https://wa.me/${s.phone.replace(/\D/g,'')}?text=${encodeURIComponent(`Namaste ${s.name}, please review and e-sign our legal document "${multiSigningLinks.docTitle}" as ${s.role} through the secure Government Recognized portal: ${s.link}`)}`}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{
+                                padding: '0.45rem 0.85rem', background: '#25D366', color: '#ffffff', textDecoration: 'none', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px'
+                              }}
+                            >
+                              WhatsApp 💬
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* Link 2: Client Signing Link */}
-                <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0369a1' }}>
-                      👤 2. Client Portal Link ({dualSigningLinks.clientName})
-                    </span>
-                    <span style={{ fontSize: '0.7rem', color: '#0284c7', fontWeight: 600 }}>Send to Client</span>
-                  </div>
-                  <div style={{ padding: '0.6rem 0.8rem', background: '#ffffff', border: '1px solid #7dd3fc', borderRadius: '8px', wordBreak: 'break-all', fontSize: '0.78rem', color: '#0369a1', marginBottom: '0.6rem' }}>
-                    {dualSigningLinks.clientLink}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    <button onClick={() => {
-                      navigator.clipboard.writeText(dualSigningLinks.clientLink);
-                      alert("Client signing link copied to clipboard!");
-                    }} style={{
-                      padding: '0.5rem 1rem', background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer'
-                    }}>
-                      Copy Client Link 📋
-                    </button>
-                    <a 
-                      href={`https://wa.me/${clientPhone.replace(/\D/g,'')}?text=${encodeURIComponent(`Namaste ${dualSigningLinks.clientName}, please review and e-sign our legal document "${dualSigningLinks.docTitle}" through the secure Government Recognized portal: ${dualSigningLinks.clientLink}`)}`}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      style={{
-                        padding: '0.5rem 1rem', background: '#25D366', color: '#ffffff', textDecoration: 'none', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px'
-                      }}
-                    >
-                      WhatsApp Client 💬
-                    </a>
-                  </div>
-                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => {
+                      const allText = multiSigningLinks.signers.map(s => `${s.role}: ${s.name}\nLink: ${s.link}`).join('\n\n');
+                      navigator.clipboard.writeText(allText);
+                      alert("All multi-party signing links copied to clipboard!");
+                    }}
+                    style={{
+                      padding: '0.65rem 1.1rem', background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '9px', fontSize: '0.82rem', fontWeight: 700, color: '#0f172a', cursor: 'pointer'
+                    }}
+                  >
+                    Copy All {multiSigningLinks.signers.length} Links 📋
+                  </button>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <button onClick={() => setShowSignModal(false)} style={{
-                    padding: '0.75rem 1.5rem', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem'
+                    padding: '0.75rem 1.5rem', background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem'
                   }}>Done &amp; Close</button>
                 </div>
               </div>

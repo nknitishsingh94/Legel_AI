@@ -1,0 +1,498 @@
+/* CGPay API Testing & Integration Studio Styles */
+.cgpay-studio-container {
+  padding: 2rem;
+  max-width: 1300px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #0f172a;
+}
+
+.cgpay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.cgpay-badge-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.cgpay-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cgpay-badge.live {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.cgpay-badge.sandbox {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.cgpay-badge.gov {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.cgpay-header h1 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.cgpay-header p {
+  color: #64748b;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.cgpay-quick-status {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #ffffff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.connected {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}
+
+.status-dot.sandbox {
+  background: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.status-dot.error {
+  background: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Tabs */
+.cgpay-nav-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 1.75rem;
+  overflow-x: auto;
+}
+
+.cgpay-tab-btn {
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.cgpay-tab-btn:hover {
+  color: #0f172a;
+}
+
+.cgpay-tab-btn.active {
+  color: #0a3871;
+  border-bottom-color: #0a3871;
+  font-weight: 700;
+}
+
+/* Credentials Bar / Card */
+.cgpay-config-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.config-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.config-card-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.config-field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.35rem;
+}
+
+.config-field input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+  font-family: monospace;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.config-field input:focus {
+  outline: none;
+  border-color: #0a3871;
+  background: #ffffff;
+}
+
+.config-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* Playground Layout */
+.cgpay-playground {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .cgpay-playground {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cgpay-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Steps in Tester */
+.step-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.step-box.active {
+  border-color: #0a3871;
+  background: #f0f7ff;
+}
+
+.step-box.success {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.step-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0a3871;
+  margin-bottom: 0.75rem;
+}
+
+.step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0a3871;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Buttons */
+.btn-primary-cgpay {
+  background: linear-gradient(135deg, #0a3871 0%, #032047 100%);
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(10, 56, 113, 0.25);
+}
+
+.btn-primary-cgpay:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(10, 56, 113, 0.35);
+}
+
+.btn-primary-cgpay:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary-cgpay {
+  background: #ffffff;
+  color: #475569;
+  border: 1.5px solid #cbd5e1;
+  padding: 0.7rem 1.1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary-cgpay:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* OKYC Card Preview */
+.okyc-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 2px solid #0a3871;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px -5px rgba(10, 56, 113, 0.12);
+  margin-top: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.okyc-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #ff9933 0%, #ffffff 50%, #138808 100%);
+}
+
+.okyc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-top: 0.25rem;
+}
+
+.okyc-govt-emblem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.okyc-govt-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0a3871;
+  line-height: 1.2;
+}
+
+.okyc-govt-subtitle {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.okyc-details-grid {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 1.25rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.okyc-avatar-box {
+  width: 80px;
+  height: 95px;
+  background: #e2e8f0;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.okyc-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.okyc-info-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.okyc-info-label {
+  color: #64748b;
+  min-width: 85px;
+  font-size: 0.78rem;
+}
+
+.okyc-info-value {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.okyc-uid-box {
+  background: #0a3871;
+  color: #ffffff;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-family: monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+/* Response Console */
+.json-console {
+  background: #0f172a;
+  color: #38bdf8;
+  border-radius: 12px;
+  padding: 1rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.78rem;
+  max-height: 380px;
+  overflow-y: auto;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Multi-Party Signers List in Studio */
+.studio-signers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.studio-signer-card {
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.studio-signer-card.sender {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.studio-signer-card.receiver {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.studio-signer-card.lawyer {
+  border-color: #fde047;
+  background: #fefce8;
+}
