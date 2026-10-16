@@ -1939,15 +1939,21 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
+  padding: 0.6rem 1.75rem;
   background: #ffffff;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  min-height: 58px;
+  box-sizing: border-box;
 }
 
 .app-navbar-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
+  min-width: 0;
 }
 
 .mobile-menu-btn {
@@ -1959,41 +1965,123 @@ body {
   padding: 4px;
 }
 
-.app-navbar-search {
+.app-navbar-page-meta {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #f1f5f9;
-  padding: 0.5rem 1rem;
-  border-radius: 100px;
-  width: 400px;
-  border: 1px solid transparent;
-  transition: border-color 0.2s;
-  background-color: #f1f5f9;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  width: 300px;
-  gap: 0.5rem;
+  min-width: 0;
 }
 
-.app-navbar-search:focus-within {
-  border-color: var(--accent-gold);
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.1);
+.app-navbar-icon-chip {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.app-navbar-search input {
-  border: none;
-  background: transparent;
-  outline: none;
-  width: 100%;
-  font-size: 0.875rem;
+.app-navbar-title-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-navbar-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: nowrap;
+}
+
+.app-navbar-page-title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-navbar-badge-pill {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  white-space: nowrap;
+}
+
+.app-navbar-page-desc {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 550px;
 }
 
 .app-navbar-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
+  flex-shrink: 0;
+}
+
+.app-navbar-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.3rem 0.7rem 0.3rem 0.4rem;
+  border-radius: 9999px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.app-navbar-user-chip:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.app-navbar-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #059669;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.app-navbar-user-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.app-navbar-user-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #ecfdf5;
+  color: #059669;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  border: 1px solid #a7f3d0;
 }
 
 .icon-btn {
@@ -2001,9 +2089,12 @@ body {
   border: none;
   cursor: pointer;
   color: var(--text-secondary);
-  padding: 0.5rem;
+  padding: 0.45rem;
   border-radius: 50%;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .icon-btn:hover {

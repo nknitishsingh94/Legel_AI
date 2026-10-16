@@ -355,33 +355,6 @@ WITNESSES:
 
   return (
     <div className="create-agreement-container animate-fade-in">
-      
-      {/* Studio Header */}
-      <div className="ca-header">
-        <div className="ca-header-left">
-          <h1>
-            Create Legal Agreement &amp; Contract
-            <span className="ca-ai-badge">
-              <Sparkles size={13} /> AI Legal Drafter
-            </span>
-          </h1>
-          <p>
-            Generate court-ready, customized Indian agreements with BNS 2023 citations, Indian Contract Act 1872 compliance, and instant eSign export.
-          </p>
-        </div>
-
-        <div className="ca-header-stats">
-          <div className="ca-stat-pill">
-            <Scale size={15} color="#059669" />
-            <span>Contract Act 1872 Valid</span>
-          </div>
-          <div className="ca-stat-pill">
-            <ShieldCheck size={15} color="#0a3871" />
-            <span>BSA 2023 Sec. 63 Court Admissible</span>
-          </div>
-        </div>
-      </div>
-
       {/* Main Studio Workspace: Left Form & Right Paper Canvas */}
       <div className="ca-content">
         

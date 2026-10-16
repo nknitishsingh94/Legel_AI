@@ -1206,15 +1206,10 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
   if (viewMode === 'gallery') {
     return (
       <div className="drafting-studio-container animate-fade-in">
-        {/* Studio Header */}
-        <div className="ds-header">
-          <div className="ds-header-left">
-            <h1>
-              <PenTool size={28} color="#10b981" />
-              Legal Drafting Studio
-              <span className="ds-header-badge">AI DRAFT GEN</span>
-            </h1>
-            <p>Select any court-tested Indian legal template below. Every draft automatically calculates and displays the governing <strong>Bharatiya Nyaya Sanhita (BNS)</strong>, <strong>BNSS 2023</strong>, and applicable Special Acts.</p>
+        {/* Gallery Quick Sub-bar (Clean & Uncongested) */}
+        <div className="ds-gallery-subbar">
+          <div className="ds-gallery-subbar-text">
+            <span>Select court-tested templates with auto-calculated <strong>BNS 2023</strong> &amp; <strong>BNSS</strong> citations.</span>
           </div>
 
           <div className="ds-header-stats">
@@ -1224,13 +1219,13 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
               onClick={() => setShowBnsModal(true)}
               title="Open Bharatiya Nyaya Sanhita (BNS) ↔ IPC Conversion Table"
             >
-              <Scale size={16} className="icon-gold" />
+              <Scale size={15} className="icon-gold" />
               <span>BNS ↔ IPC Conversion Table</span>
-              <ChevronRight size={14} />
+              <ChevronRight size={13} />
             </button>
             <div className="ds-stat-pill">
-              <BookOpen size={16} color="#059669" />
-              <span>BNSS & BSA 2023 Court Verified</span>
+              <BookOpen size={15} color="#059669" />
+              <span>BNSS &amp; BSA 2023 Verified</span>
             </div>
           </div>
         </div>

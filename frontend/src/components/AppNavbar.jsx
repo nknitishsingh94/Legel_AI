@@ -1,16 +1,74 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, User, Menu, Settings, CreditCard, LogOut, CheckCircle, AlertTriangle, FileText, MessageSquare, LayoutDashboard } from 'lucide-react';
+import { 
+  Bell, User, Menu, Settings, CreditCard, LogOut, CheckCircle, 
+  AlertTriangle, FileText, MessageSquare, LayoutDashboard, FilePlus, 
+  PenTool, Folder, Files, ShieldCheck, Sparkles, Scale, ExternalLink
+} from 'lucide-react';
 import { supabase } from '../supabase';
 
-const AppNavbar = ({ onToggleSidebar, user, onNavigate, chats = [], onSelectChat }) => {
+const PAGE_METADATA = {
+  overview: {
+    title: 'Dashboard Overview',
+    subtitle: 'Legal intelligence & chambers analytics',
+    badge: 'Live',
+    icon: LayoutDashboard
+  },
+  create: {
+    title: 'Create Legal Agreement & Contract',
+    subtitle: 'Indian Contract Act 1872 & BNS 2023 compliant',
+    badge: 'AI Drafter',
+    icon: FilePlus
+  },
+  drafting: {
+    title: 'Legal Drafting Studio',
+    subtitle: 'Court petitions, statutory notices & bail • BNSS & BSA 2023',
+    badge: 'BNS 2023 Ready',
+    icon: PenTool
+  },
+  files: {
+    title: 'Workspace Documents & Files',
+    subtitle: 'Client briefs, generated agreements & signed drafts',
+    badge: 'Vault',
+    icon: Folder
+  },
+  summary: {
+    title: 'Agreement Summary & Review',
+    subtitle: 'Automatic contractual liability & risk extraction',
+    badge: 'Statutory Audit',
+    icon: FileText
+  },
+  compare: {
+    title: 'Compare Legal Agreements',
+    subtitle: 'Side-by-side redline & clause deviation audit',
+    badge: 'Version Delta',
+    icon: Files
+  },
+  chat: {
+    title: 'AI Legal Counsel Consultation',
+    subtitle: 'Indian jurisprudence, statutory reasoning & citations',
+    badge: 'Legal AI',
+    icon: MessageSquare
+  },
+  cgpay: {
+    title: 'CGPay Legal eSign Gateway',
+    subtitle: 'Aadhaar OTP, DigiLocker & OKYC electronic signing',
+    badge: 'LIVE Gateway',
+    icon: ShieldCheck
+  },
+  settings: {
+    title: 'Chambers & Account Settings',
+    subtitle: 'Manage practice credentials, subscription & security',
+    badge: 'Verified',
+    icon: Settings
+  }
+};
+
+const AppNavbar = ({ onToggleSidebar, user, onNavigate, onLogout, activeView = 'overview' }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   
   const notifRef = useRef(null);
   const profileRef = useRef(null);
-  const searchRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -20,117 +78,102 @@ const AppNavbar = ({ onToggleSidebar, user, onNavigate, chats = [], onSelectChat
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setShowProfileMenu(false);
       }
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setIsSearchFocused(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const pages = [
-    { title: 'Dashboard Overview', id: 'overview', type: 'page', icon: LayoutDashboard },
-    { title: 'Account Settings', id: 'settings', type: 'page', icon: Settings },
-    { title: 'Create Agreement', id: 'create', type: 'page', icon: FileText }
-  ];
-
-  const searchResults = searchTerm ? [
-    ...pages.filter(p => p.title.toLowerCase().includes(searchTerm.toLowerCase())),
-    ...chats.filter(c => c.title.toLowerCase().includes(searchTerm.toLowerCase())).map(c => ({ ...c, type: 'chat' }))
-  ].slice(0, 5) : [];
-
-  const handleSelectResult = (result) => {
-    if (result.type === 'page') {
-      if(onNavigate) onNavigate(result.id);
-    } else {
-      if(onSelectChat) onSelectChat(result.id);
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Sign out error in navbar:", e);
     }
-    setSearchTerm('');
-    setIsSearchFocused(false);
+    if (onLogout) {
+      onLogout();
+    } else {
+      window.location.href = '/';
+    }
   };
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Advocate';
-  const avatarUrl = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=0d9488&color=fff`;
+  const planName = user?.app_metadata?.plan || 'Advocate Plan';
+
+  const meta = PAGE_METADATA[activeView] || PAGE_METADATA.overview;
+  const PageIcon = meta.icon;
 
   return (
     <header className="app-navbar">
+      {/* Left Side: Mobile toggle + Compact fixed page title & subtitle */}
       <div className="app-navbar-left">
-        <button className="mobile-menu-btn" onClick={onToggleSidebar}>
-          <Menu size={24} />
+        <button 
+          type="button"
+          className="mobile-menu-btn" 
+          onClick={onToggleSidebar}
+          title="Toggle Navigation Menu"
+        >
+          <Menu size={22} />
         </button>
-        <div className="app-navbar-search hide-on-mobile" ref={searchRef} style={{ position: 'relative' }}>
-          <Search size={18} color="var(--text-secondary)" />
-          <input 
-            type="text" 
-            placeholder="Search chats, documents, or settings..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-          />
-          
-          {isSearchFocused && searchTerm && (
-            <div className="dropdown-menu animate-fade-in" style={{ position: 'absolute', top: '120%', left: '0', width: '100%', minWidth: '350px', background: '#fff', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)', border: '1px solid var(--border-color)', zIndex: 100, overflow: 'hidden' }}>
-              {searchResults.length > 0 ? (
-                <div>
-                  {searchResults.map((result, i) => (
-                    <button 
-                      key={`${result.type}-${result.id}-${i}`} 
-                      onClick={() => handleSelectResult(result)}
-                      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'transparent', border: 'none', borderBottom: i < searchResults.length - 1 ? '1px solid var(--border-color)' : 'none', cursor: 'pointer', textAlign: 'left', color: '#374151', fontSize: '0.9rem' }}
-                      onMouseOver={e => e.currentTarget.style.background = '#f3f4f6'} 
-                      onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      {result.type === 'page' ? <result.icon size={16} /> : <MessageSquare size={16} />}
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{result.title}</span>
-                      <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: 'var(--text-secondary)', background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>{result.type === 'page' ? 'Page' : 'Chat'}</span>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                  No results found for "{searchTerm}"
-                </div>
+
+        <div className="app-navbar-page-meta">
+          <div className="app-navbar-icon-chip">
+            <PageIcon size={18} color="#059669" />
+          </div>
+          <div className="app-navbar-title-column">
+            <div className="app-navbar-title-row">
+              <h2 className="app-navbar-page-title">{meta.title}</h2>
+              {meta.badge && (
+                <span className="app-navbar-badge-pill">{meta.badge}</span>
               )}
             </div>
-          )}
+            <p className="app-navbar-page-desc">{meta.subtitle}</p>
+          </div>
         </div>
       </div>
 
-      <div className="app-navbar-actions" style={{ position: 'relative' }}>
+      {/* Right Side: Bell Icon & Advocate Profile Dropdown (Search Bar Removed) */}
+      <div className="app-navbar-actions">
         
-        {/* Notifications */}
+        {/* Notifications Bell */}
         <div ref={notifRef} style={{ position: 'relative' }}>
-          <button className="icon-btn" onClick={() => setShowNotifications(!showNotifications)}>
-            <Bell size={20} />
-            <span style={{ position: 'absolute', top: '6px', right: '6px', width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%' }}></span>
+          <button 
+            type="button"
+            className="icon-btn" 
+            onClick={() => setShowNotifications(!showNotifications)}
+            title="Notifications"
+            style={{ position: 'relative' }}
+          >
+            <Bell size={19} />
+            <span style={{ position: 'absolute', top: '7px', right: '7px', width: '7px', height: '7px', background: '#ef4444', borderRadius: '50%' }}></span>
           </button>
           
           {showNotifications && (
-            <div className="dropdown-menu animate-fade-in" style={{ position: 'absolute', top: '120%', right: '0', width: '320px', background: '#fff', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)', border: '1px solid var(--border-color)', zIndex: 100, overflow: 'hidden' }}>
-              <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', fontWeight: 600, fontSize: '1rem' }}>
+            <div className="dropdown-menu animate-fade-in" style={{ 
+              position: 'absolute', top: '120%', right: '0', width: '310px', 
+              background: '#fff', borderRadius: '12px', 
+              boxShadow: '0 10px 25px rgba(0,0,0,0.12)', border: '1px solid #e5e7eb', 
+              zIndex: 1000, overflow: 'hidden' 
+            }}>
+              <div style={{ padding: '0.85rem 1rem', borderBottom: '1px solid #f3f4f6', fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>
                 Notifications
               </div>
-              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                  <div style={{ background: '#fef3c7', padding: '0.5rem', borderRadius: '50%' }}>
-                    <AlertTriangle size={18} color="#f59e0b" />
+              <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                <div style={{ padding: '0.85rem 1rem', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                  <div style={{ background: '#ecfdf5', padding: '0.45rem', borderRadius: '50%', flexShrink: 0 }}>
+                    <CheckCircle size={16} color="#059669" />
                   </div>
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#111827' }}>Payment Reminder</h4>
-                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>You are approaching your 50 queries free limit. Upgrade to Pro for unlimited access.</p>
+                    <h4 style={{ margin: 0, fontSize: '0.84rem', color: '#111827', fontWeight: 600 }}>System Live & BNS Ready</h4>
+                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.76rem', color: '#64748b' }}>All Indian criminal codes & statutory drafting databases are synchronized.</p>
                   </div>
                 </div>
-                <div style={{ padding: '1rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                  <div style={{ background: '#d1fae5', padding: '0.5rem', borderRadius: '50%' }}>
-                    <CheckCircle size={18} color="#10b981" />
+                <div style={{ padding: '0.85rem 1rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                  <div style={{ background: '#ecfdf5', padding: '0.45rem', borderRadius: '50%', flexShrink: 0 }}>
+                    <ShieldCheck size={16} color="#059669" />
                   </div>
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#111827' }}>Welcome to Wakalat AI</h4>
-                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Your account has been successfully verified.</p>
+                    <h4 style={{ margin: 0, fontSize: '0.84rem', color: '#111827', fontWeight: 600 }}>CGPay eSign Gateway Live</h4>
+                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.76rem', color: '#64748b' }}>Aadhaar OTP & DigiLocker multi-party signing available for immediate execution.</p>
                   </div>
                 </div>
               </div>
@@ -138,40 +181,56 @@ const AppNavbar = ({ onToggleSidebar, user, onNavigate, chats = [], onSelectChat
           )}
         </div>
 
-        {/* Profile */}
+        {/* Advocate Profile & Dropdown */}
         <div ref={profileRef} style={{ position: 'relative' }}>
-          <button className="profile-btn" onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <img src={avatarUrl} alt="Profile" style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
-            <span className="hide-on-mobile">{userName}</span>
-          </button>
+          <div 
+            className="app-navbar-user-chip" 
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            title="Account Menu"
+          >
+            <div className="app-navbar-user-avatar">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+            <span className="app-navbar-user-name hide-on-mobile">{userName}</span>
+            <span className="app-navbar-user-badge hide-on-mobile">{planName}</span>
+          </div>
 
           {showProfileMenu && (
-            <div className="dropdown-menu animate-fade-in" style={{ position: 'absolute', top: '120%', right: '0', width: '240px', background: '#fff', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)', border: '1px solid var(--border-color)', zIndex: 100, padding: '0.5rem' }}>
-              <div style={{ padding: '0.75rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
-                <p style={{ margin: 0, fontWeight: 600, color: '#111827', fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {userName}
-                </p>
-                <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {user?.email}
-                </p>
+            <div className="dropdown-menu animate-fade-in" style={{ 
+              position: 'absolute', top: '120%', right: '0', width: '220px', 
+              background: '#fff', borderRadius: '12px', 
+              boxShadow: '0 10px 25px rgba(0,0,0,0.12)', border: '1px solid #e5e7eb', 
+              zIndex: 1000, overflow: 'hidden', padding: '6px' 
+            }}>
+              <div style={{ padding: '8px 10px', borderBottom: '1px solid #f3f4f6', fontSize: '0.8rem', color: '#64748b' }}>
+                Signed in as <strong style={{ color: '#0f172a' }}>{user?.email || 'Advocate'}</strong>
               </div>
-              
-              <button onClick={() => { setShowProfileMenu(false); if(onNavigate) onNavigate('settings'); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '6px', color: '#374151', fontSize: '0.9rem', textAlign: 'left' }} onMouseOver={e => e.currentTarget.style.background = '#f3f4f6'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-                <Settings size={16} /> Account Settings
+              <button 
+                type="button"
+                onClick={() => { setShowProfileMenu(false); if (onNavigate) onNavigate('settings'); }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', textAlign: 'left', fontSize: '0.84rem', color: '#334155' }}
+              >
+                <Settings size={15} /> Account Settings
               </button>
-              
-              <button onClick={() => { setShowProfileMenu(false); if(onNavigate) onNavigate('settings'); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '6px', color: '#374151', fontSize: '0.9rem', textAlign: 'left' }} onMouseOver={e => e.currentTarget.style.background = '#f3f4f6'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-                <CreditCard size={16} /> Billing & Plans
+              <button 
+                type="button"
+                onClick={() => { setShowProfileMenu(false); if (onNavigate) onNavigate('files'); }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', textAlign: 'left', fontSize: '0.84rem', color: '#334155' }}
+              >
+                <Folder size={15} /> Workspace Documents
               </button>
-              
-              <div style={{ height: '1px', background: 'var(--border-color)', margin: '0.5rem 0' }}></div>
-              
-              <button onClick={handleSignOut} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '6px', color: '#ef4444', fontSize: '0.9rem', textAlign: 'left' }} onMouseOver={e => e.currentTarget.style.background = '#fef2f2'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-                <LogOut size={16} /> Sign Out
+              <div style={{ height: '1px', background: '#f3f4f6', margin: '4px 0' }}></div>
+              <button 
+                type="button"
+                onClick={handleSignOut}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: 'transparent', border: 'none', borderRadius: '6px', cursor: 'pointer', textAlign: 'left', fontSize: '0.84rem', color: '#dc2626', fontWeight: 600 }}
+              >
+                <LogOut size={15} /> Log Out
               </button>
             </div>
           )}
         </div>
+
       </div>
     </header>
   );

@@ -90,6 +90,13 @@ function App() {
         supabase.auth.onAuthStateChange((event, session) => {
           if (event === 'PASSWORD_RECOVERY') {
             setView('update-password');
+          } else if (event === 'SIGNED_OUT') {
+            setUser(null);
+            setIsLoggedIn(false);
+            setView('landing');
+            if (typeof window !== 'undefined' && window.history.pushState) {
+              window.history.pushState(null, '', '/');
+            }
           } else if (session) {
             setUser(session.user);
             setIsLoggedIn(true);
@@ -197,6 +204,26 @@ function App() {
     setView('app');
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Sign out warning:", e);
+    }
+    setUser(null);
+    setIsLoggedIn(false);
+    setView('landing');
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('sb-access-token');
+        localStorage.removeItem('sb-refresh-token');
+        if (window.history.pushState) {
+          window.history.pushState(null, '', '/');
+        }
+      } catch (err) {}
+    }
+  };
+
   if (isSigningRoute) return <SigningPortal />;
   if (view === 'landing') return <LandingPage onGetStarted={handleGetStarted} onLoginClick={() => setView('login')} onAboutClick={() => setView('about')} onNavigate={setView} user={user} />;
   if (view === 'about') return <AboutUs onBack={() => setView('landing')} onGetStarted={handleGetStarted} onNavigate={setView} />;
@@ -221,6 +248,7 @@ function App() {
       onDeleteChat={handleDeleteChat}
       onNewChat={handleNewChat}
       usageCount={usageCount}
+      onLogout={handleLogout}
     >
       {dashboardView === 'compare' ? (
         <CompareAgreements />

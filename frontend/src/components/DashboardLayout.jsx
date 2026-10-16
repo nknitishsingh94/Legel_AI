@@ -13,7 +13,8 @@ const DashboardLayout = ({
   onSelectChat,
   onDeleteChat,
   onNewChat,
-  usageCount
+  usageCount,
+  onLogout
 }) => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -53,6 +54,7 @@ const DashboardLayout = ({
           }}
           usageCount={usageCount}
           onUpgrade={() => setIsPaymentModalOpen(true)}
+          onLogout={onLogout}
         />
       </div>
 
@@ -63,6 +65,8 @@ const DashboardLayout = ({
           onNavigate={onNavigate} 
           chats={chats}
           onSelectChat={onSelectChat}
+          onLogout={onLogout}
+          activeView={activeView}
         />
         <div className="dashboard-content">
           {children}

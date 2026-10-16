@@ -269,11 +269,16 @@ const WorkspaceFiles = ({ user }) => {
   };
 
   return (
-    <div className="workspace-files-container animate-fade-in">
-      <div className="wf-header">
-        <div className="wf-title-section">
-          <h1>Workspace Files</h1>
-          <p>Manage and organize all your legal documents in one place.</p>
+    <div className="workspace-files-container animate-fade-in" style={{ padding: '1rem 1.75rem 3rem' }}>
+      <div className="wf-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="wf-search" style={{ flex: 1, maxWidth: '380px' }}>
+          <Search size={16} />
+          <input 
+            type="text" 
+            placeholder="Search documents and files by name..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
         
         <input 
@@ -284,21 +289,9 @@ const WorkspaceFiles = ({ user }) => {
         />
         
         <button className="wf-upload-btn" onClick={handleUploadClick}>
-          <FilePlus size={18} />
+          <FilePlus size={17} />
           <span>Upload File</span>
         </button>
-      </div>
-
-      <div className="wf-toolbar">
-        <div className="wf-search">
-          <Search size={16} />
-          <input 
-            type="text" 
-            placeholder="Search files by name..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
       </div>
 
       <div className="wf-table-container">
