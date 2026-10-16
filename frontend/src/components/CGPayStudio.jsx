@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ShieldCheck, Key, CheckCircle, AlertCircle, Loader2, Play, 
+  Key, CheckCircle, AlertCircle, Loader2, Play, 
   Send, RefreshCw, Copy, Check, ExternalLink, UserCheck, 
   FileText, Users, Terminal, Smartphone, Lock, Award, Eye, EyeOff
 } from 'lucide-react';
@@ -317,27 +317,18 @@ const CGPayStudio = ({ user }) => {
 
   return (
     <div className="cgpay-studio-container animate-fade-in">
-      {/* Header */}
-      <div className="cgpay-header">
-        <div>
-          <div className="cgpay-badge-group">
-            <span className={`cgpay-badge ${apiKey ? 'live' : 'sandbox'}`}>
-              {apiKey ? '● CGPAY LIVE GATEWAY' : '● CGPAY SANDBOX READY'}
-            </span>
-            <span className="cgpay-badge gov">
-              IT ACT 2000 SEC. 3A &amp; 10A • BSA 2023
-            </span>
-            <span className="cgpay-badge gov">
-              UIDAI AADHAAR OKYC &amp; DIGILOCKER
-            </span>
-          </div>
-          <h1>
-            <ShieldCheck size={28} color="#0a3871" />
-            CGPay API Testing &amp; Multi-Sign Integration Studio
-          </h1>
-          <p>
-            Verify credentials, test real-time Aadhaar OTP generation, OKYC demographic retrieval, DigiLocker MeriPehchan, and multi-party signing workflows.
-          </p>
+      {/* Header Bar: Status Badges & Ping Indicator */}
+      <div className="cgpay-header" style={{ marginBottom: '1.25rem', alignItems: 'center' }}>
+        <div className="cgpay-badge-group" style={{ margin: 0 }}>
+          <span className={`cgpay-badge ${apiKey ? 'live' : 'sandbox'}`}>
+            {apiKey ? '● CGPAY LIVE GATEWAY' : '● CGPAY SANDBOX READY'}
+          </span>
+          <span className="cgpay-badge gov">
+            IT ACT 2000 SEC. 3A &amp; 10A • BSA 2023
+          </span>
+          <span className="cgpay-badge gov">
+            UIDAI AADHAAR OKYC &amp; DIGILOCKER
+          </span>
         </div>
 
         <div className="cgpay-quick-status">
