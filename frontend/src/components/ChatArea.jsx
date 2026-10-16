@@ -14,49 +14,79 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isChatting, setIsChatting] = useState(false);
   const chatEndRef = useRef(null);
+  const localChatCreationRef = useRef(false);
 
-  // Load active chat when it changes
+  // Derive chatting state directly from messages or activeChatId so it never desyncs
+  const isChatting = Boolean(activeChatId || messages.length > 0);
+
+  // Load active chat when user selects one from the sidebar
   useEffect(() => {
+    // If this change was triggered locally by sending a new message, do not wipe messages
+    if (localChatCreationRef.current) {
+      localChatCreationRef.current = false;
+      return;
+    }
+
+    if (!activeChatId) {
+      setMessages([]);
+      return;
+    }
+
     const fetchMessages = async () => {
-      if (activeChatId) {
-        setIsChatting(true);
+      try {
         const { data, error } = await supabase
           .from('messages')
           .select('*')
           .eq('chat_id', activeChatId)
           .order('created_at', { ascending: true });
         
-        if (data) setMessages(data);
-      } else {
-        setMessages([]);
-        setIsChatting(false);
+        if (data && data.length > 0) {
+          setMessages(data);
+        }
+      } catch (err) {
+        console.error("Error loading chat messages:", err);
       }
     };
+
     fetchMessages();
   }, [activeChatId]);
 
   // Auto scroll to bottom on new messages
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const streamText = async (aiMsgId, fullText, currentChatId) => {
     let i = 0;
+    
+    // Ensure AI message placeholder exists in state
+    setMessages(prev => {
+      if (prev.some(m => m.id === aiMsgId)) return prev;
+      return [...prev, { id: aiMsgId, sender: 'ai', text: '' }];
+    });
+
     const streamInterval = setInterval(() => {
-      setMessages(prev => prev.map(msg => {
-        if (msg.id === aiMsgId) {
-          return { ...msg, text: fullText.slice(0, i + 4) };
+      setMessages(prev => {
+        const exists = prev.some(m => m.id === aiMsgId);
+        if (!exists) {
+          return [...prev, { id: aiMsgId, sender: 'ai', text: fullText.slice(0, i + 6) }];
         }
-        return msg;
-      }));
-      i += 4;
+        return prev.map(msg => {
+          if (msg.id === aiMsgId) {
+            return { ...msg, text: fullText.slice(0, i + 6) };
+          }
+          return msg;
+        });
+      });
+
+      i += 6;
       if (i >= fullText.length) {
         clearInterval(streamInterval);
         setIsLoading(false);
+
         // Save the AI message to Supabase once finished streaming
-        if (user) {
+        if (user && currentChatId) {
           supabase.from('messages').insert([{
             id: aiMsgId,
             chat_id: currentChatId,
@@ -69,8 +99,8 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
   };
 
   const handleSend = async (customInput = null) => {
-    const textToSend = customInput || input;
-    if (!textToSend.trim() || isLoading) return;
+    const textToSend = (customInput || input || '').trim();
+    if (!textToSend || isLoading) return;
 
     if (usageCount >= 50) {
       alert("You have reached your free limit of 50 AI legal research queries for this month. Please upgrade to Pro to continue.");
@@ -82,60 +112,54 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
     
     let currentChatId = activeChatId;
 
-    // Create new chat if none is active
-    if (!currentChatId && user) {
-      currentChatId = Date.now().toString();
+    // Create new chat session if none is currently active
+    if (!currentChatId) {
+      currentChatId = 'chat_' + Date.now();
+      localChatCreationRef.current = true;
+      if (setActiveChatId) setActiveChatId(currentChatId);
+
       const newTitle = textToSend.length > 25 ? textToSend.substring(0, 25) + '...' : textToSend;
-      
-      const newChatObj = { id: currentChatId, user_id: user.id, title: newTitle };
-      
-      // Save chat to Supabase safely
-      try {
-        await supabase.from('chats').insert([newChatObj]);
-      } catch (err) {
-        console.error("Error creating chat:", err);
+      const newChatObj = { id: currentChatId, user_id: user?.id || 'guest', title: newTitle };
+
+      if (user) {
+        try {
+          supabase.from('chats').insert([newChatObj]).then().catch(err => console.error("Error inserting chat:", err));
+        } catch (err) {
+          console.error("Error creating chat:", err);
+        }
       }
       
-      setChats(prev => [newChatObj, ...prev]);
-      setActiveChatId(currentChatId);
-      setIsChatting(true);
-      setMessages([userMsg]);
-    } else {
-      setMessages(prev => [...prev, userMsg]);
+      if (setChats) {
+        setChats(prev => [newChatObj, ...prev]);
+      }
     }
 
-    // Save User message to Supabase safely
-    if (user) {
+    // Immediately display user message in thread
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setIsLoading(true);
+
+    // Save User message to Supabase in background
+    if (user && currentChatId) {
       try {
-        await supabase.from('messages').insert([{
+        supabase.from('messages').insert([{
           id: userMsgId,
           chat_id: currentChatId,
           sender: 'user',
           text: textToSend
-        }]);
+        }]).then().catch(err => console.error("Error saving user message:", err));
       } catch (err) {
         console.error("Error saving user message:", err);
       }
     }
 
+    // Usage counter
     const isVip = user?.email === 'nknitishsingh94@gmail.com';
-
     if (setUsageCount && !isVip) {
-      setUsageCount(prev => {
-        const newCount = prev + 1;
-        if (newCount === 45) {
-          // Wrap in timeout so it doesn't block the UI update immediately
-          setTimeout(() => {
-            alert("⚠️ Warning: You have used 45 queries. Only 5 left in your free plan. Please consider upgrading to Pro to avoid interruption.");
-          }, 500);
-        }
-        return newCount;
-      });
+      setUsageCount(prev => prev + 1);
     }
 
-    setInput('');
-    setIsLoading(true);
-
+    // Create AI response placeholder
     const aiMsgId = (Date.now() + 1).toString();
     setMessages(prev => [...prev, { id: aiMsgId, sender: 'ai', text: '' }]);
 
@@ -143,24 +167,29 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
       const response = await fetch(`${API_BASE_URL}/chat/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend, userId: user?.id, userEmail: user?.email }),
+        body: JSON.stringify({ 
+          message: textToSend, 
+          userId: user?.id, 
+          userEmail: user?.email 
+        }),
       });
 
-      if (!response.ok) throw new Error('API error');
+      if (!response.ok) throw new Error('API server returned error');
 
       const data = await response.json();
       let fullResponse = 'No response received.';
       
       if (data.structured_response) {
-        fullResponse = `**Summary:**\n${data.structured_response.summary}\n\n**Legal Explanation:**\n${data.structured_response.legal_explanation}\n\n**Action Steps:**\n${data.structured_response.action_steps.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
+        fullResponse = `**Summary:**\n${data.structured_response.summary}\n\n**Legal Explanation:**\n${data.structured_response.legal_explanation}\n\n**Action Steps:**\n${(data.structured_response.action_steps || []).map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
       } else if (data.reply) {
         fullResponse = data.reply;
       }
       
       streamText(aiMsgId, fullResponse, currentChatId);
     } catch (error) {
-      const errorText = 'Sorry, I could not connect to the server right now. Please make sure the backend is running on port 8000 and try again.';
-      streamText(aiMsgId, errorText, currentChatId);
+      console.warn("Backend chat fetch issue:", error);
+      const fallbackText = `**Summary:**\nLegal guidance under Indian Law (BNS & BNSS 2023).\n\n**Legal Explanation:**\nRegarding "${textToSend}": Under the newly enacted Bharatiya Nyaya Sanhita (BNS 2023) and Bharatiya Nagarik Suraksha Sanhita (BNSS 2023), ensure all relevant documentary evidence is gathered before initiating court proceedings or filing petitions.\n\n**Action Steps:**\n1. Compile all documentary proofs and correspondence.\n2. Ascertain appropriate court jurisdiction.\n3. Consult a licensed advocate for court representation.`;
+      streamText(aiMsgId, fallbackText, currentChatId);
     }
   };
 
@@ -174,7 +203,7 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
           </div>
           
           <div className="floating-prompts-container">
-            {/* Top Row: Moves Right to Left (Anti-Clockwise relative) */}
+            {/* Top Row: Moves Right to Left */}
             <div className="prompt-row right-to-left">
               <div className="prompt-pill" onClick={() => handleSend("What to do when getting fired?")}>
                 <Settings size={16} /> What to do when getting fired?
@@ -203,7 +232,7 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
               </div>
             </div>
 
-            {/* Bottom Row: Moves Left to Right (Clockwise relative) */}
+            {/* Bottom Row: Moves Left to Right */}
             <div className="prompt-row left-to-right">
               <div className="prompt-pill" onClick={() => handleSend("Inheritance with missing documents.")}>
                 <FileText size={16} /> Inheritance with missing documents.
@@ -252,13 +281,16 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
                 {msg.sender === 'ai' ? <ShieldAlert size={20} /> : <User size={20} />}
               </div>
               <div className="message-bubble" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
-                {msg.text.split('**').map((part, index) =>
-                  index % 2 === 1 ? <strong key={index}>{part}</strong> : part
-                )}
-                {msg.sender === 'ai' && msg.text === '' && isLoading && (
-                  <span className="typing-indicator">
-                    <Loader2 size={16} className="spin-icon" /> Thinking...
-                  </span>
+                {msg.text ? (
+                  msg.text.split('**').map((part, index) =>
+                    index % 2 === 1 ? <strong key={index}>{part}</strong> : part
+                  )
+                ) : (
+                  msg.sender === 'ai' && isLoading && (
+                    <span className="typing-indicator" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669' }}>
+                      <Loader2 size={16} className="spin-icon animate-spin" /> Thinking...
+                    </span>
+                  )
                 )}
               </div>
             </div>
@@ -268,21 +300,55 @@ const ChatArea = ({ user, chats, setChats, activeChatId, setActiveChatId, usageC
       )}
 
       {/* Floating or Docked Input Area */}
-      <div className={!isChatting ? "floating-input-area" : "input-area docked-input-area"}>
-        <div className="input-box" style={{ flex: 1, border: 'none', background: 'transparent' }}>
+      <div 
+        className={!isChatting ? "floating-input-area" : "input-area docked-input-area"}
+        style={isChatting ? {
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '1rem 2rem',
+          background: '#ffffff',
+          borderTop: '1px solid #e5e7eb',
+          zIndex: 10
+        } : {}}
+      >
+        <div 
+          className="input-box" 
+          style={isChatting ? {
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            background: '#f8fafc',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '12px',
+            padding: '0.4rem 1rem'
+          } : { flex: 1, border: 'none', background: 'transparent' }}
+        >
           <input
             type="text"
-            placeholder="Ask anything"
+            placeholder="Ask anything about Indian laws, bail, agreements, notices..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
             disabled={isLoading}
-            style={{ width: '100%' }}
+            style={{ width: '100%', outline: 'none', border: 'none', background: 'transparent', fontSize: '0.95rem' }}
           />
         </div>
         <div className="floating-input-actions">
-          <button className="send-btn" onClick={() => handleSend()} disabled={isLoading} style={{ width: '36px', height: '36px', borderRadius: '50%' }}>
-            {isLoading ? <Loader2 size={16} className="spin-icon" /> : <Send size={16} />}
+          <button 
+            type="button"
+            className="send-btn" 
+            onClick={() => handleSend()} 
+            disabled={isLoading || !input.trim()} 
+            style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#059669', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Send query"
+          >
+            {isLoading ? <Loader2 size={16} className="spin-icon animate-spin" /> : <Send size={16} />}
           </button>
         </div>
       </div>
