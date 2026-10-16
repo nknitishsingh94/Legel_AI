@@ -99,13 +99,15 @@
 
 /* Add active state for when files are uploaded later */
 .compare-btn.active {
-  background-color: #111827;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #ffffff;
   cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
 }
 
 .compare-btn.active:hover {
-  background-color: #000000;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {

@@ -630,9 +630,14 @@ WITNESSES:
                   onClick={handleOpenEsign}
                   disabled={isSaving || !generatedDoc}
                   title="Initiate Multi-Party Legal eSign via Aadhaar / DigiLocker"
-                  style={{ background: 'linear-gradient(135deg, #0a3871 0%, #032047 100%)', color: '#ffffff' }}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
+                    color: '#ffffff', 
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                  }}
                 >
-                  <ShieldCheck size={14} color="#38bdf8" />
+                  <ShieldCheck size={14} color="#ffffff" />
                   <span>Send for e-Sign</span>
                 </button>
               </div>

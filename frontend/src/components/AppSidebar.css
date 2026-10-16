@@ -128,9 +128,9 @@
 }
 
 .nav-item-link.active {
-  background-color: #f3f4f6;
-  color: #111827;
-  font-weight: 500;
+  background-color: #ecfdf5;
+  color: #047857;
+  font-weight: 700;
 }
 
 .nav-item-link svg {
@@ -139,7 +139,7 @@
 }
 
 .nav-item-link.active svg {
-  color: #111827;
+  color: #059669;
 }
 
 .shortcut-badge {

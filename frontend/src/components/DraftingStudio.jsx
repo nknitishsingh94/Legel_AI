@@ -1963,25 +1963,25 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
                 className="ds-canvas-esign-btn"
                 onClick={handleOpenEsignModal}
                 disabled={isSaving || !generatedDraft}
-                title="Initiate Multi-Party Legal eSign via Aadhaar / DigiLocker"
+                title="Send this legal draft for multi-party e-Sign via Aadhaar / DigiLocker"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '0.45rem 0.95rem',
-                  background: 'linear-gradient(135deg, #0a3871 0%, #032047 100%)',
+                  padding: '0.45rem 1rem',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '8px',
-                  fontSize: '0.82rem',
+                  fontSize: '0.78rem',
                   fontWeight: 700,
                   cursor: (isSaving || !generatedDraft) ? 'not-allowed' : 'pointer',
                   opacity: (isSaving || !generatedDraft) ? 0.6 : 1,
-                  boxShadow: '0 4px 12px rgba(10, 56, 113, 0.25)',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
                   transition: 'all 0.15s ease'
                 }}
               >
-                <ShieldCheck size={14} color="#38bdf8" />
+                <ShieldCheck size={14} color="#ffffff" />
                 <span>Send for e-Sign</span>
               </button>
 

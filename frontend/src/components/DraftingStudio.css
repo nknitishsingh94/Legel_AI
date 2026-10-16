@@ -1350,22 +1350,24 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: #0f172a;
-  color: #ffffff;
-  border: none;
+  background: #ffffff;
+  color: #1e293b;
+  border: 1.5px solid #cbd5e1;
   border-radius: 8px;
   padding: 0.45rem 0.85rem;
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .ds-canvas-save-btn:hover:not(:disabled) {
-  background: #1e293b;
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
 
 .ds-canvas-save-btn.success {

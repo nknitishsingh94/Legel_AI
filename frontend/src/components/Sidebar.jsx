@@ -12,7 +12,7 @@ const Sidebar = () => {
         <div style={{ color: '#111827' }}>Wakalat<span style={{ color: 'var(--accent-gold)' }}>AI</span></div>
       </div>
 
-      <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', justifyContent: 'center', marginBottom: '1.5rem', background: '#111827' }}>
+      <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', justifyContent: 'center', marginBottom: '1.5rem', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: 'none', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}>
         <PlusCircle size={20} />
         New Consultation
       </button>
