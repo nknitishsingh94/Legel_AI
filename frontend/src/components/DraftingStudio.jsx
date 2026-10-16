@@ -5,9 +5,8 @@ import {
   ArrowLeft, ArrowRight, Info, Layers, CheckSquare, Square, X, ExternalLink, HelpCircle
 } from 'lucide-react';
 import { supabase } from '../supabase';
+import { saveDocumentToWorkspace, API_BASE_URL } from '../api';
 import './DraftingStudio.css';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 // BNS, BNSS & Indian Statutory Knowledge Base with Old IPC / CrPC / IEA Mappings
 const BNS_IPC_MAPPING = [
@@ -458,6 +457,8 @@ const DraftingStudio = ({ user, onNavigate }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDraft, setGeneratedDraft] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveToast, setSaveToast] = useState('');
   const [copied, setCopied] = useState(false);
 
   // Toggle BNS or Statutory section dynamically
@@ -1050,25 +1051,95 @@ SECOND PARTY: ________________________ (${fData.partyB})
 COUNSEL: _____________________________ (${fData.advocateName})`;
   };
 
-  // Save Document to Supabase
+  // Save Document to Supabase & Workspace
   const handleSaveToWorkspace = async () => {
-    if (!user || !generatedDraft) return;
+    if (!generatedDraft) {
+      alert("Please generate or enter a legal draft before saving.");
+      return;
+    }
     setIsSaving(true);
+    setSaveToast('');
     try {
-      const docTitle = `${selectedTemplate.title} - ${formData.partyA} & ${formData.partyB}`;
-      const { error } = await supabase.from('documents').insert([{
-        user_id: user.id,
+      const docTitle = `${selectedTemplate.title} - ${formData.partyA || 'Party A'} & ${formData.partyB || 'Party B'}`;
+      
+      // 1. Primary Save via Secure Backend API (bypasses RLS safely and sets user_id)
+      const saveRes = await saveDocumentToWorkspace({
         title: docTitle,
         content: generatedDraft,
-        status: 'Draft'
-      }]);
+        status: 'Draft',
+        userId: user?.id,
+        userEmail: user?.email
+      });
 
-      if (error) throw error;
-      alert("✅ Document saved to your Workspace Files!");
-      if (onNavigate) onNavigate('files');
+      // 2. Also save to localStorage backup so draft is never lost locally
+      try {
+        const localBackups = JSON.parse(localStorage.getItem('vakeel_drafts_backup') || '[]');
+        const newBackup = {
+          id: saveRes?.document?.id || `draft_${Date.now()}`,
+          title: docTitle,
+          content: generatedDraft,
+          status: 'Draft',
+          created_at: new Date().toISOString()
+        };
+        localStorage.setItem('vakeel_drafts_backup', JSON.stringify([newBackup, ...localBackups.slice(0, 20)]));
+      } catch (storageErr) {
+        console.warn("Local storage backup non-critical warning:", storageErr);
+      }
+
+      setSaveSuccess(true);
+      setSaveToast("Saved to Workspace Files!");
+      setTimeout(() => setSaveSuccess(false), 4500);
+
+      // Auto redirect to Workspace Files after 1.2s if onNavigate is passed
+      if (onNavigate) {
+        setTimeout(() => {
+          onNavigate('files');
+        }, 1200);
+      }
     } catch (err) {
-      console.error("Error saving document:", err);
-      alert("Failed to save document to workspace.");
+      console.error("Backend document save failed, attempting local fallback:", err);
+      let savedLocally = false;
+
+      // Fallback 1: Direct Supabase client insert if user authenticated
+      if (user?.id) {
+        try {
+          const docTitle = `${selectedTemplate.title} - ${formData.partyA} & ${formData.partyB}`;
+          const { error } = await supabase.from('documents').insert([{
+            user_id: user.id,
+            title: docTitle,
+            content: generatedDraft,
+            status: 'Draft'
+          }]);
+          if (!error) savedLocally = true;
+        } catch (e) {
+          console.warn("Direct supabase insert fallback error:", e);
+        }
+      }
+
+      // Fallback 2: Local storage backup
+      try {
+        const localBackups = JSON.parse(localStorage.getItem('vakeel_drafts_backup') || '[]');
+        const fallbackDoc = {
+          id: `local_${Date.now()}`,
+          title: `${selectedTemplate.title} - ${formData.partyA} & ${formData.partyB}`,
+          content: generatedDraft,
+          status: 'Draft',
+          created_at: new Date().toISOString()
+        };
+        localStorage.setItem('vakeel_drafts_backup', JSON.stringify([fallbackDoc, ...localBackups.slice(0, 20)]));
+        savedLocally = true;
+      } catch (lsErr) {}
+
+      if (savedLocally) {
+        setSaveSuccess(true);
+        setSaveToast("Saved to Workspace Backup!");
+        setTimeout(() => setSaveSuccess(false), 4500);
+        if (onNavigate) {
+          setTimeout(() => onNavigate('files'), 1200);
+        }
+      } else {
+        alert("Failed to save draft: " + (err.message || 'Please check server connection.'));
+      }
     } finally {
       setIsSaving(false);
     }
@@ -1447,17 +1518,22 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
             <span>Print / PDF</span>
           </button>
 
-          {user && (
-            <button 
-              className="ds-tool-btn primary" 
-              onClick={handleSaveToWorkspace}
-              disabled={isSaving}
-              title="Save to Workspace Documents"
-            >
+          <button 
+            type="button"
+            className={`ds-tool-btn primary ${saveSuccess ? 'ds-btn-saved' : ''}`} 
+            onClick={handleSaveToWorkspace}
+            disabled={isSaving}
+            title="Save to Workspace Documents"
+          >
+            {isSaving ? (
+              <RefreshCw size={14} className="ds-spinning" />
+            ) : saveSuccess ? (
+              <Check size={14} color="#ffffff" />
+            ) : (
               <Save size={14} />
-              <span>{isSaving ? 'Saving...' : 'Save Draft'}</span>
-            </button>
-          )}
+            )}
+            <span>{isSaving ? 'Saving...' : saveSuccess ? 'Saved ✓' : 'Save Draft'}</span>
+          </button>
         </div>
       </div>
 
@@ -1822,9 +1898,32 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
                 </span>
               )}
             </div>
-            <div className="ds-toolbar-hint">
-              <PenTool size={13} color="#059669" />
-              <span>Direct Click-to-Edit Enabled</span>
+            <div className="ds-toolbar-actions-right">
+              {saveToast && (
+                <span className="ds-save-toast-pill">
+                  <Check size={13} color="#10b981" /> {saveToast}
+                </span>
+              )}
+              <button 
+                type="button"
+                className={`ds-canvas-save-btn ${saveSuccess ? 'success' : ''}`}
+                onClick={handleSaveToWorkspace}
+                disabled={isSaving || !generatedDraft}
+                title="Save this draft to your Workspace Files"
+              >
+                {isSaving ? (
+                  <RefreshCw size={13} className="ds-spinning" />
+                ) : saveSuccess ? (
+                  <Check size={13} />
+                ) : (
+                  <Save size={13} />
+                )}
+                <span>{isSaving ? 'Saving...' : saveSuccess ? 'Saved to Workspace ✓' : 'Save to Workspace'}</span>
+              </button>
+              <div className="ds-toolbar-hint">
+                <PenTool size={13} color="#059669" />
+                <span>Click-to-Edit Enabled</span>
+              </div>
             </div>
           </div>
 

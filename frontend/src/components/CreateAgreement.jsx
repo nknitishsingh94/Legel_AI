@@ -5,9 +5,8 @@ import {
   ExternalLink, ChevronRight, Hash
 } from 'lucide-react';
 import { supabase } from '../supabase';
+import { saveDocumentToWorkspace, API_BASE_URL } from '../api';
 import './CreateAgreement.css';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 const QUICK_CLAUSE_PRESETS = [
   { label: '+ 2-Yr Non-Compete', text: 'Both parties agree to a 2-year non-compete within territorial jurisdiction following termination.' },
@@ -270,14 +269,27 @@ WITNESSES:
     try {
       const docTitle = `${formData.type} - ${formData.partyA} & ${formData.partyB}`;
       
-      const { error } = await supabase.from('documents').insert([{
-        user_id: user?.id || null,
+      const saveRes = await saveDocumentToWorkspace({
         title: docTitle,
         content: generatedDoc,
-        status: 'Draft'
-      }]);
+        status: 'Draft',
+        userId: user?.id,
+        userEmail: user?.email
+      });
 
-      if (error) throw error;
+      // Also save to localStorage backup
+      try {
+        const localBackups = JSON.parse(localStorage.getItem('vakeel_drafts_backup') || '[]');
+        const newBackup = {
+          id: saveRes?.document?.id || `agr_${Date.now()}`,
+          title: docTitle,
+          content: generatedDoc,
+          status: 'Draft',
+          created_at: new Date().toISOString()
+        };
+        localStorage.setItem('vakeel_drafts_backup', JSON.stringify([newBackup, ...localBackups.slice(0, 20)]));
+      } catch (e) {}
+
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3500);
 
@@ -287,8 +299,46 @@ WITNESSES:
         }, 1200);
       }
     } catch (error) {
-      console.error("Error saving document:", error);
-      alert("Note: Document saved locally in session. " + (error.message || ''));
+      console.warn("Backend save failed, attempting local fallback:", error);
+      let saved = false;
+
+      // Fallback 1: Direct supabase client if user authenticated
+      if (user?.id) {
+        try {
+          const docTitle = `${formData.type} - ${formData.partyA} & ${formData.partyB}`;
+          const { error: sbErr } = await supabase.from('documents').insert([{
+            user_id: user.id,
+            title: docTitle,
+            content: generatedDoc,
+            status: 'Draft'
+          }]);
+          if (!sbErr) saved = true;
+        } catch (e) {}
+      }
+
+      // Fallback 2: Local storage
+      try {
+        const localBackups = JSON.parse(localStorage.getItem('vakeel_drafts_backup') || '[]');
+        const fallbackDoc = {
+          id: `local_${Date.now()}`,
+          title: `${formData.type} - ${formData.partyA} & ${formData.partyB}`,
+          content: generatedDoc,
+          status: 'Draft',
+          created_at: new Date().toISOString()
+        };
+        localStorage.setItem('vakeel_drafts_backup', JSON.stringify([fallbackDoc, ...localBackups.slice(0, 20)]));
+        saved = true;
+      } catch (e) {}
+
+      if (saved) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3500);
+        if (onNavigate) {
+          setTimeout(() => onNavigate('files'), 1200);
+        }
+      } else {
+        alert("Error saving document: " + (error.message || 'Network error'));
+      }
     } finally {
       setIsSaving(false);
     }

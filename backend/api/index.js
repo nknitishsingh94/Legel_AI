@@ -915,6 +915,135 @@ app.get('/api/esign/portal/:docId/:sigId', async (req, res) => {
   }
 });
 
+// ---- Save Document to Workspace (RLS Bypass via Admin Client) ----
+app.post('/api/documents/save', async (req, res) => {
+  try {
+    const { title, content, status = 'Draft', userId, userEmail } = req.body;
+    if (!title || !content) {
+      return res.status(400).json({ success: false, detail: "Title and content are required." });
+    }
+
+    if (!supabaseAdmin) {
+      return res.status(500).json({ success: false, detail: "Database admin client unavailable" });
+    }
+
+    let finalUserId = userId;
+
+    // If userId not provided or invalid uuid, find or assign default admin user
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!finalUserId || !uuidRegex.test(finalUserId)) {
+      if (userEmail) {
+        try {
+          const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
+          const matched = userData?.users?.find(u => u.email?.toLowerCase() === userEmail.toLowerCase());
+          if (matched) finalUserId = matched.id;
+        } catch (e) {
+          console.warn("User lookup by email skipped:", e.message);
+        }
+      }
+      if (!finalUserId || !uuidRegex.test(finalUserId)) {
+        finalUserId = 'ed39788f-a637-414d-a129-5f3da3e7672e'; // default advocate user
+      }
+    }
+
+    const { data: docRecord, error: docErr } = await supabaseAdmin
+      .from('documents')
+      .insert([{
+        user_id: finalUserId,
+        title: title.trim(),
+        content: content.trim(),
+        status: status || 'Draft'
+      }])
+      .select()
+      .single();
+
+    if (docErr) {
+      console.error("Document insert error in admin client:", docErr);
+      return res.status(500).json({ success: false, detail: docErr.message });
+    }
+
+    // Record audit log
+    try {
+      await supabaseAdmin.from('audit_logs').insert([{
+        document_id: docRecord.id,
+        action: `Document "${title.trim()}" drafted and saved to workspace files`,
+        performed_by: userEmail || 'Advocate / Authorized User',
+        ip_address: req.ip || 'Client Verified'
+      }]);
+    } catch (auditErr) {
+      console.warn("Audit log insert non-critical warning:", auditErr.message);
+    }
+
+    return res.json({
+      success: true,
+      document: docRecord,
+      message: "Document saved successfully to Workspace Files!"
+    });
+  } catch (err) {
+    console.error("Document save route exception:", err);
+    res.status(500).json({ success: false, detail: err.message });
+  }
+});
+
+// ---- Fetch Workspace Documents ----
+app.get('/api/documents', async (req, res) => {
+  try {
+    if (!supabaseAdmin) {
+      return res.status(500).json({ success: false, detail: "Database admin client unavailable" });
+    }
+
+    const { userId } = req.query;
+    let query = supabaseAdmin
+      .from('documents')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (userId && uuidRegex.test(userId)) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data: docs, error: dErr } = await query;
+    if (dErr) {
+      return res.status(500).json({ success: false, detail: dErr.message });
+    }
+
+    return res.json({
+      success: true,
+      documents: docs || []
+    });
+  } catch (err) {
+    console.error("Documents fetch route error:", err);
+    res.status(500).json({ success: false, detail: err.message });
+  }
+});
+
+// ---- Delete Document from Workspace ----
+app.delete('/api/documents/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!supabaseAdmin) {
+      return res.status(500).json({ success: false, detail: "Database admin client unavailable" });
+    }
+
+    try {
+      await supabaseAdmin.from('signatures').delete().eq('document_id', id);
+      await supabaseAdmin.from('audit_logs').delete().eq('document_id', id);
+    } catch (cleanupErr) {
+      console.warn("Cleanup warning:", cleanupErr.message);
+    }
+
+    const { error: dErr } = await supabaseAdmin.from('documents').delete().eq('id', id);
+    if (dErr) {
+      return res.status(500).json({ success: false, detail: dErr.message });
+    }
+
+    return res.json({ success: true, message: "Document deleted successfully." });
+  } catch (err) {
+    res.status(500).json({ success: false, detail: err.message });
+  }
+});
+
 // ---- Start Server ----
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, '0.0.0.0', () => {

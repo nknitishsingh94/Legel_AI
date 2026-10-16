@@ -1307,3 +1307,65 @@
     display: none;
   }
 }
+
+/* Save State Visual Feedback */
+.ds-tool-btn.ds-btn-saved {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  border-color: #059669 !important;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4) !important;
+}
+
+.ds-toolbar-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ds-save-toast-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid #6ee7b7;
+  padding: 0.28rem 0.75rem;
+  border-radius: 9999px;
+  animation: ds-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ds-canvas-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ds-canvas-save-btn:hover:not(:disabled) {
+  background: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ds-canvas-save-btn.success {
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.ds-canvas-save-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
