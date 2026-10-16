@@ -15,6 +15,8 @@ const getApiBaseUrl = () => {
 const API_BASE_URL = getApiBaseUrl();
 
 const CGPayStudio = ({ user }) => {
+  const isAdmin = user?.email === 'nknitishsingh94@gmail.com' || user?.app_metadata?.role === 'admin';
+
   // Navigation tab: 'okyc' | 'digilocker' | 'multisign' | 'console'
   const [activeTab, setActiveTab] = useState('okyc');
 
@@ -314,6 +316,18 @@ const CGPayStudio = ({ user }) => {
       { id: newId, role, name, email, status: 'Pending', signedAt: null }
     ]);
   };
+
+  if (!isAdmin) {
+    return (
+      <div style={{ maxWidth: '600px', margin: '4rem auto', padding: '2.5rem', background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
+        <Lock size={44} color="#059669" style={{ margin: '0 auto 1rem', display: 'block' }} />
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>Chambers Administrator Access Only</h2>
+        <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.5' }}>
+          CGPay Gateway Configuration &amp; API credentials are restricted to the Managing Advocate. Regular users and clients sign documents through Workspace Files.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="cgpay-studio-container animate-fade-in">

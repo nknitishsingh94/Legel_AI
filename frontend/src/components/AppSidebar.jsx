@@ -211,7 +211,8 @@ const AppSidebar = ({
     else if (onNavigate) onNavigate('settings');
   };
 
-  // Nav Links with Real-Time Search Filter
+  // Nav Links with Real-Time Search Filter (CGPay restricted to Admin)
+  const isAdmin = user?.email === 'nknitishsingh94@gmail.com' || user?.app_metadata?.role === 'admin';
   const q = searchQuery.toLowerCase().trim();
   const navItems = [
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
@@ -221,7 +222,7 @@ const AppSidebar = ({
     { id: 'compare', label: 'Compare agreements', icon: Files },
     { id: 'create', label: 'Create agreement', icon: FilePlus },
     { id: 'drafting', label: 'Drafting', icon: PenTool },
-    { id: 'cgpay', label: 'CGPay eSign Gateway', icon: ShieldCheck, isLive: true }
+    ...(isAdmin ? [{ id: 'cgpay', label: 'CGPay eSign Gateway', icon: ShieldCheck, isAdminOnly: true }] : [])
   ];
 
   const filteredNavItems = q ? navItems.filter(item => item.label.toLowerCase().includes(q)) : navItems;
@@ -374,12 +375,17 @@ const AppSidebar = ({
             >
               <Icon size={18} color={item.id === 'cgpay' ? '#059669' : undefined} />
               <span>{item.label}</span>
-              {item.isLive && (
+              {item.isAdminOnly && (
+                <span style={{ fontSize: '0.62rem', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '1px 6px', borderRadius: '100px', fontWeight: 800, marginLeft: 'auto' }}>
+                  ADMIN
+                </span>
+              )}
+              {item.isLive && !item.isAdminOnly && (
                 <span style={{ fontSize: '0.62rem', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '1px 6px', borderRadius: '100px', fontWeight: 800, marginLeft: 'auto' }}>
                   LIVE
                 </span>
               )}
-              {item.shortcut && !item.isLive && (
+              {item.shortcut && !item.isLive && !item.isAdminOnly && (
                 <span className="shortcut-badge">{item.shortcut}</span>
               )}
             </a>

@@ -271,7 +271,11 @@ function App() {
       ) : dashboardView === 'drafting' ? (
         <DraftingStudio user={user} onNavigate={setDashboardView} />
       ) : dashboardView === 'cgpay' ? (
-        <CGPayStudio user={user} />
+        (user?.email === 'nknitishsingh94@gmail.com' || user?.app_metadata?.role === 'admin') ? (
+          <CGPayStudio user={user} />
+        ) : (
+          <DashboardOverview usageCount={usageCount} user={user} />
+        )
       ) : dashboardView === 'settings' ? (
         <Settings user={user} />
       ) : (
