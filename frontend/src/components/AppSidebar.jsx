@@ -515,22 +515,10 @@ const AppSidebar = ({
 
       </div>
 
-      {/* Footer: Settings, Upgrade & User Profile */}
+      {/* Footer: User Profile & Quick Settings */}
       <div className="sidebar-footer-fixed">
         
-        {/* Settings button */}
-        <button 
-          type="button"
-          className={`nav-item-link ${activeView === 'settings' ? 'active' : ''}`} 
-          onClick={(e) => { e.preventDefault(); if (onNavigate) onNavigate('settings'); }} 
-          style={{ width: '100%', marginBottom: '8px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 12px', borderRadius: '6px', color: '#4b5563' }}
-          title="Account & System Settings"
-        >
-          <Settings size={18} />
-          <span style={{ fontSize: '14px', fontWeight: '500' }}>Settings</span>
-        </button>
-
-        {/* User Profile Bar with Dropdown Menu */}
+        {/* User Profile Bar with Dropdown Menu & Quick Settings Icon */}
         <div className="sidebar-user-profile-wrap" ref={userMenuRef} style={{ position: 'relative' }}>
           <div 
             className="sidebar-user-profile" 
@@ -548,14 +536,34 @@ const AppSidebar = ({
                 {user?.app_metadata?.plan || 'Advocate Plan'}
               </span>
             </div>
-            <button 
-              type="button"
-              className="icon-btn" 
-              onClick={(e) => { e.stopPropagation(); setUserMenuOpen(!userMenuOpen); }}
-              title="More user options"
-            >
-              <MoreVertical size={16} />
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+              <button 
+                type="button"
+                className={`icon-btn ${activeView === 'settings' ? 'active' : ''}`} 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  if (onNavigate) onNavigate('settings'); 
+                }}
+                title="Chambers & System Settings"
+                style={{ 
+                  color: activeView === 'settings' ? '#059669' : '#6b7280',
+                  background: activeView === 'settings' ? '#ecfdf5' : 'transparent',
+                  padding: '5px',
+                  borderRadius: '6px'
+                }}
+              >
+                <Settings size={16} />
+              </button>
+              <button 
+                type="button"
+                className="icon-btn" 
+                onClick={(e) => { e.stopPropagation(); setUserMenuOpen(!userMenuOpen); }}
+                title="More user options"
+                style={{ padding: '5px' }}
+              >
+                <MoreVertical size={16} />
+              </button>
+            </div>
           </div>
 
           {/* User Dropdown with Upgrade & Clean Logout */}

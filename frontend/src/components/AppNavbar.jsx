@@ -131,9 +131,24 @@ const AppNavbar = ({ onToggleSidebar, user, onNavigate, onLogout, activeView = '
         </div>
       </div>
 
-      {/* Right Side: Bell Icon & Advocate Profile Dropdown (Search Bar Removed) */}
+      {/* Right Side: Settings Icon, Bell Icon & Advocate Profile Dropdown */}
       <div className="app-navbar-actions">
         
+        {/* Chambers & Account Settings Icon */}
+        <button 
+          type="button"
+          className={`icon-btn ${activeView === 'settings' ? 'active' : ''}`}
+          onClick={() => onNavigate && onNavigate('settings')}
+          title="Chambers & System Settings"
+          style={{ 
+            color: activeView === 'settings' ? '#059669' : '#64748b',
+            background: activeView === 'settings' ? '#ecfdf5' : 'transparent',
+            borderRadius: '50%'
+          }}
+        >
+          <Settings size={19} />
+        </button>
+
         {/* Notifications Bell */}
         <div ref={notifRef} style={{ position: 'relative' }}>
           <button 
