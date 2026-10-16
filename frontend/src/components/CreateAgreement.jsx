@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { saveDocumentToWorkspace, API_BASE_URL } from '../api';
+import LegalEsignModal from './LegalEsignModal';
 import './CreateAgreement.css';
 
 const QUICK_CLAUSE_PRESETS = [
@@ -60,6 +61,42 @@ const CreateAgreement = ({ user, onNavigate }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [docHash, setDocHash] = useState('');
+  const [showEsignModal, setShowEsignModal] = useState(false);
+  const [savedDocForEsign, setSavedDocForEsign] = useState(null);
+
+  const handleOpenEsign = async () => {
+    if (!generatedDoc) return;
+    const docTitle = `${formData.type} - ${formData.partyA} & ${formData.partyB}`;
+    let docId = `agr_${Date.now()}`;
+    
+    setIsSaving(true);
+    try {
+      const saveRes = await saveDocumentToWorkspace({
+        title: docTitle,
+        content: generatedDoc,
+        status: 'Draft',
+        userId: user?.id,
+        userEmail: user?.email
+      });
+      if (saveRes?.document?.id) {
+        docId = saveRes.document.id;
+      }
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (e) {
+      console.warn("Save before esign fallback:", e);
+    } finally {
+      setIsSaving(false);
+    }
+
+    setSavedDocForEsign({
+      id: docId,
+      title: docTitle,
+      content: generatedDoc,
+      status: 'Draft'
+    });
+    setShowEsignModal(true);
+  };
 
   // Compute SHA-256 Hash of document text
   const computeSHA256 = async (text) => {
@@ -587,20 +624,17 @@ WITNESSES:
                   <span>{saveSuccess ? 'Saved ✓' : 'Save Document'}</span>
                 </button>
 
-                {onNavigate && (
-                  <button
-                    type="button"
-                    className="ca-tool-btn esign"
-                    onClick={() => {
-                      handleSaveDocument();
-                      onNavigate('files');
-                    }}
-                    title="Initiate Multi-Party eSign via Aadhaar / DigiLocker"
-                  >
-                    <ShieldCheck size={14} />
-                    <span>eSign Portal</span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="ca-tool-btn esign"
+                  onClick={handleOpenEsign}
+                  disabled={isSaving || !generatedDoc}
+                  title="Initiate Multi-Party Legal eSign via Aadhaar / DigiLocker"
+                  style={{ background: 'linear-gradient(135deg, #0a3871 0%, #032047 100%)', color: '#ffffff' }}
+                >
+                  <ShieldCheck size={14} color="#38bdf8" />
+                  <span>Send for e-Sign</span>
+                </button>
               </div>
             )}
           </div>
@@ -660,6 +694,18 @@ WITNESSES:
         </div>
 
       </div>
+
+      {showEsignModal && savedDocForEsign && (
+        <LegalEsignModal
+          isOpen={showEsignModal}
+          onClose={() => {
+            setShowEsignModal(false);
+            setSavedDocForEsign(null);
+          }}
+          document={savedDocForEsign}
+          user={user}
+        />
+      )}
 
     </div>
   );

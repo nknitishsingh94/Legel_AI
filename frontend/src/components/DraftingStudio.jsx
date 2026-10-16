@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   FileText, PenTool, Sparkles, Download, Printer, Copy, Check, Save, 
   Shield, Scale, ChevronRight, ChevronDown, ChevronUp, RefreshCw, Search, BookOpen, AlertCircle,
-  ArrowLeft, ArrowRight, Info, Layers, CheckSquare, Square, X, ExternalLink, HelpCircle
+  ArrowLeft, ArrowRight, Info, Layers, CheckSquare, Square, X, ExternalLink, HelpCircle, ShieldCheck
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import { saveDocumentToWorkspace, API_BASE_URL } from '../api';
+import LegalEsignModal from './LegalEsignModal';
 import './DraftingStudio.css';
 
 // BNS, BNSS & Indian Statutory Knowledge Base with Old IPC / CrPC / IEA Mappings
@@ -460,6 +461,47 @@ const DraftingStudio = ({ user, onNavigate }) => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveToast, setSaveToast] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showEsignModal, setShowEsignModal] = useState(false);
+  const [savedDocForEsign, setSavedDocForEsign] = useState(null);
+
+  const handleOpenEsignModal = async () => {
+    if (!generatedDraft) {
+      alert("Please generate or enter a legal draft before sending for e-Sign.");
+      return;
+    }
+    const docTitle = `${selectedTemplate.title} - ${formData.partyA || 'Party A'} & ${formData.partyB || 'Party B'}`;
+    let docId = `draft_${Date.now()}`;
+
+    setIsSaving(true);
+    setSaveToast('');
+    try {
+      const saveRes = await saveDocumentToWorkspace({
+        title: docTitle,
+        content: generatedDraft,
+        status: 'Draft',
+        userId: user?.id,
+        userEmail: user?.email
+      });
+      if (saveRes?.document?.id) {
+        docId = saveRes.document.id;
+      }
+      setSaveSuccess(true);
+      setSaveToast("Saved & Launching e-Sign...");
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (e) {
+      console.warn("Direct save before e-sign fallback:", e);
+    } finally {
+      setIsSaving(false);
+    }
+
+    setSavedDocForEsign({
+      id: docId,
+      title: docTitle,
+      content: generatedDraft,
+      status: 'Draft'
+    });
+    setShowEsignModal(true);
+  };
 
   // Toggle BNS or Statutory section dynamically
   const handleToggleBnsSection = (secCode) => {
@@ -1915,6 +1957,34 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
                 )}
                 <span>{isSaving ? 'Saving...' : saveSuccess ? 'Saved to Workspace ✓' : 'Save to Workspace'}</span>
               </button>
+
+              <button 
+                type="button"
+                className="ds-canvas-esign-btn"
+                onClick={handleOpenEsignModal}
+                disabled={isSaving || !generatedDraft}
+                title="Initiate Multi-Party Legal eSign via Aadhaar / DigiLocker"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '0.45rem 0.95rem',
+                  background: 'linear-gradient(135deg, #0a3871 0%, #032047 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: (isSaving || !generatedDraft) ? 'not-allowed' : 'pointer',
+                  opacity: (isSaving || !generatedDraft) ? 0.6 : 1,
+                  boxShadow: '0 4px 12px rgba(10, 56, 113, 0.25)',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <ShieldCheck size={14} color="#38bdf8" />
+                <span>Send for e-Sign</span>
+              </button>
+
               <div className="ds-toolbar-hint">
                 <PenTool size={13} color="#059669" />
                 <span>Click-to-Edit Enabled</span>
@@ -2024,6 +2094,19 @@ COUNSEL: _____________________________ (${fData.advocateName})`;
             </div>
           </div>
         </div>
+      )}
+
+      {/* Expansive Full-Scale Legal e-Sign Orchestrator */}
+      {showEsignModal && savedDocForEsign && (
+        <LegalEsignModal
+          isOpen={showEsignModal}
+          onClose={() => {
+            setShowEsignModal(false);
+            setSavedDocForEsign(null);
+          }}
+          document={savedDocForEsign}
+          user={user}
+        />
       )}
 
     </div>
