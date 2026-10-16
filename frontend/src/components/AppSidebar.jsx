@@ -71,10 +71,10 @@ const AppSidebar = ({ activeView, onNavigate, chats = [], activeChatId, onSelect
           <span>Drafting</span>
         </a>
         <a href="#" className={`nav-item-link ${activeView === 'cgpay' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if(onNavigate) onNavigate('cgpay'); }}>
-          <ShieldCheck size={18} color="#0a3871" />
-          <span>CGPay API &amp; eSign</span>
-          <span style={{ fontSize: '0.62rem', background: '#0a3871', color: '#ffffff', padding: '1px 6px', borderRadius: '100px', fontWeight: 800, marginLeft: 'auto' }}>
-            TEST
+          <ShieldCheck size={18} color="#059669" />
+          <span>CGPay eSign Gateway</span>
+          <span style={{ fontSize: '0.62rem', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '1px 6px', borderRadius: '100px', fontWeight: 800, marginLeft: 'auto' }}>
+            LIVE
           </span>
         </a>
       </nav>

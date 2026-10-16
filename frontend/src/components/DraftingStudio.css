@@ -23,9 +23,6 @@
   animation: ds-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ==========================================================================
-   1. GALLERY VIEW - HEADER & CATEGORY FILTER BAR
-   ========================================================================== */
 
 .ds-header {
   margin-bottom: 1.5rem;

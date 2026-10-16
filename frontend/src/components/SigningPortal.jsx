@@ -289,7 +289,7 @@ const SigningPortal = () => {
       setOtpTxnId(data.txnId || `TXN-CGPAY-${Date.now()}`);
       setOtpSent(true);
       setOtpCountdown(60);
-      alert(`Aadhaar OTP dispatched successfully to mobile linked with ${data.maskedAadhaar || 'XXXX-XXXX-' + rawAadhaar.slice(-4)}. For demo testing, enter any 6 digits (e.g. 123456).`);
+      alert(`Aadhaar OTP dispatched successfully to mobile linked with ${data.maskedAadhaar || 'XXXX-XXXX-' + rawAadhaar.slice(-4)}. Please enter the 6-digit verification code.`);
     } catch (err) {
       alert("Failed to initiate Aadhaar OTP: " + err.message);
     } finally {
@@ -595,9 +595,22 @@ const SigningPortal = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <style>{`
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @media print {
+          header, .no-print, button, .ds-modal-backdrop {
+            display: none !important;
+          }
+          body, main {
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+        }
+      `}</style>
       
       {/* Official Legal & Government Compliance Header */}
-      <header style={{ background: '#0b1120', color: '#ffffff', padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+      <header className="no-print" style={{ background: '#0b1120', color: '#ffffff', padding: '1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <img src="/logo.jpg" alt="Wakalat AI" style={{ width: '36px', height: '36px', borderRadius: '8px' }} />
           <div>

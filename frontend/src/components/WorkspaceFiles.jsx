@@ -635,6 +635,17 @@ const WorkspaceFiles = ({ user }) => {
                               WhatsApp 💬
                             </a>
                           )}
+
+                          {s.email && (
+                            <a 
+                              href={`mailto:${s.email}?subject=${encodeURIComponent(`Official Legal Signature Request: ${multiSigningLinks.docTitle}`)}&body=${encodeURIComponent(`Namaste ${s.name},\n\nYou have been designated to electronically sign the legal document "${multiSigningLinks.docTitle}" as ${s.role}.\n\nPlease review and execute the agreement through the official Government Recognized legal portal:\n${s.link}\n\nStatutory Compliance: Section 3A & 10A, Information Technology Act, 2000 & Bharatiya Sakshya Adhiniyam, 2023.\n\nRegards,\nWakalat AI Legal Infrastructure`)}`}
+                              style={{
+                                padding: '0.45rem 0.85rem', background: '#0284c7', color: '#ffffff', textDecoration: 'none', borderRadius: '7px', fontSize: '0.78rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px'
+                              }}
+                            >
+                              Email ✉️
+                            </a>
+                          )}
                         </div>
                       </div>
                     );
