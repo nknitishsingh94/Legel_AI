@@ -274,12 +274,12 @@ function App() {
         (user?.email === 'nknitishsingh94@gmail.com' || user?.app_metadata?.role === 'admin') ? (
           <CGPayStudio user={user} />
         ) : (
-          <DashboardOverview usageCount={usageCount} user={user} />
+          <DashboardOverview usageCount={usageCount} user={user} onNavigate={setDashboardView} />
         )
       ) : dashboardView === 'settings' ? (
         <Settings user={user} />
       ) : (
-        <DashboardOverview usageCount={usageCount} user={user} />
+        <DashboardOverview usageCount={usageCount} user={user} onNavigate={setDashboardView} />
       )}
     </DashboardLayout>
   )

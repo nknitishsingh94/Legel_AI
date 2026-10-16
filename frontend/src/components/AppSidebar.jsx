@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   MoreVertical, Search, Edit, Folder, FileText, 
   Files, FilePlus, ChevronDown, Plus, Sparkles, User, LayoutDashboard, 
-  Settings, Trash2, MessageSquare, PenTool, ShieldCheck, Briefcase, 
+  Settings, Trash2, MessageSquare, PenTool, ShieldCheck, 
   Check, X, ExternalLink, LogOut, CreditCard, Layers, Building
 } from 'lucide-react';
 import { supabase } from '../supabase';
@@ -14,11 +14,6 @@ const DEFAULT_WORKSPACES = [
   { id: 'ws-3', name: 'Corporate Advisory', type: 'Contracts & Advisory', initials: 'CA' }
 ];
 
-const DEFAULT_CASES = [
-  { id: 'case-1', title: 'Sharma v. State (Bail Appeal)', forum: 'Delhi High Court', type: 'Criminal / Bail', status: 'Hearing' },
-  { id: 'case-2', title: 'Apex Logistics vs. TransGlobal', forum: 'Tis Hazari District Court', type: 'Civil Recovery', status: 'Active' },
-  { id: 'case-3', title: 'Cheque Bounce Sec 138 Notice', forum: 'Patiala House Court', type: 'NI Act 1881', status: 'Notice' }
-];
 
 const AppSidebar = ({ 
   activeView, 
@@ -33,7 +28,6 @@ const AppSidebar = ({
   onLogout 
 }) => {
   // Navigation & UI states
-  const [openCases, setOpenCases] = useState(true);
   const [openChats, setOpenChats] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
@@ -59,23 +53,6 @@ const AppSidebar = ({
   const [showAddWsInput, setShowAddWsInput] = useState(false);
   const [newWsName, setNewWsName] = useState('');
 
-  // Cases Management
-  const [cases, setCases] = useState(() => {
-    try {
-      const saved = localStorage.getItem('vakeel_cases');
-      return saved ? JSON.parse(saved) : DEFAULT_CASES;
-    } catch (e) {
-      return DEFAULT_CASES;
-    }
-  });
-  const [activeCaseId, setActiveCaseId] = useState(null);
-  const [showNewCaseModal, setShowNewCaseModal] = useState(false);
-  const [newCaseForm, setNewCaseForm] = useState({
-    title: '',
-    forum: 'Delhi High Court',
-    type: 'Criminal / Bail',
-    clientName: ''
-  });
 
   const searchInputRef = useRef(null);
   const workspaceRef = useRef(null);
@@ -120,11 +97,6 @@ const AppSidebar = ({
     } catch (e) {}
   }, [workspaces, activeWorkspace]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('vakeel_cases', JSON.stringify(cases));
-    } catch (e) {}
-  }, [cases]);
 
   // Workspace actions
   const handleSelectWorkspace = (ws) => {
@@ -151,38 +123,6 @@ const AppSidebar = ({
     setWorkspaceMenuOpen(false);
   };
 
-  // Case actions
-  const handleCreateCase = (e) => {
-    e.preventDefault();
-    if (!newCaseForm.title.trim()) return;
-    const newCase = {
-      id: `case-${Date.now()}`,
-      title: newCaseForm.title.trim(),
-      forum: newCaseForm.forum || 'District Court',
-      type: newCaseForm.type || 'Civil / Criminal',
-      status: 'Active'
-    };
-    const updated = [newCase, ...cases];
-    setCases(updated);
-    setActiveCaseId(newCase.id);
-    setShowNewCaseModal(false);
-    setNewCaseForm({ title: '', forum: 'Delhi High Court', type: 'Criminal / Bail', clientName: '' });
-  };
-
-  const handleDeleteCase = (id, e) => {
-    e.stopPropagation();
-    if (!window.confirm("Are you sure you want to remove this case file?")) return;
-    setCases(prev => prev.filter(c => c.id !== id));
-    if (activeCaseId === id) setActiveCaseId(null);
-  };
-
-  const handleSelectCase = (c) => {
-    setActiveCaseId(c.id);
-    // Navigate to drafting or chat with pre-filled context
-    if (onNavigate) {
-      onNavigate('drafting');
-    }
-  };
 
   // Full reliable Logout
   const handleLogout = async () => {
@@ -226,7 +166,6 @@ const AppSidebar = ({
   ];
 
   const filteredNavItems = q ? navItems.filter(item => item.label.toLowerCase().includes(q)) : navItems;
-  const filteredCases = q ? cases.filter(c => c.title.toLowerCase().includes(q) || c.forum.toLowerCase().includes(q)) : cases;
   const filteredChats = q ? chats.filter(c => c.title.toLowerCase().includes(q)) : chats;
 
   return (
@@ -396,75 +335,6 @@ const AppSidebar = ({
       {/* Scrollable Center: Cases & Recent Chats */}
       <div className="sidebar-scrollable">
         
-        {/* Cases Section */}
-        <div className="sidebar-section">
-          <div className="section-header" onClick={() => setOpenCases(!openCases)}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Briefcase size={13} /> Cases ({cases.length})
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <ChevronDown size={14} className={`chevron ${openCases ? 'open' : ''}`} />
-              <button 
-                type="button"
-                className="icon-btn-small" 
-                onClick={(e) => { e.stopPropagation(); setShowNewCaseModal(true); }}
-                title="Add New Case"
-              >
-                <Plus size={14} />
-              </button>
-            </div>
-          </div>
-
-          {openCases && (
-            <div className="section-content">
-              <button 
-                type="button" 
-                className="new-case-btn" 
-                onClick={() => setShowNewCaseModal(true)}
-                title="Create a new legal case file"
-              >
-                <Plus size={14} /> New case
-              </button>
-
-              {filteredCases.length === 0 ? (
-                <div style={{ padding: '8px 4px', fontSize: '12px', color: '#9ca3af', textAlign: 'center' }}>
-                  {q ? 'No matching cases' : 'No active cases'}
-                </div>
-              ) : (
-                filteredCases.map(c => (
-                  <div 
-                    key={c.id} 
-                    className={`chat-history-item ${activeCaseId === c.id ? 'active' : ''}`}
-                    onClick={() => handleSelectCase(c)}
-                    title={`${c.title} — ${c.forum}`}
-                  >
-                    <Briefcase size={14} color="#0284c7" />
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                      <span className="chat-title" style={{ fontWeight: 600, fontSize: '12.5px' }}>{c.title}</span>
-                      <span style={{ fontSize: '10.5px', color: '#64748b' }}>{c.forum}</span>
-                    </div>
-                    <span style={{ 
-                      fontSize: '9.5px', padding: '1px 5px', borderRadius: '4px',
-                      background: c.status === 'Hearing' ? '#fef3c7' : '#e0f2fe',
-                      color: c.status === 'Hearing' ? '#b45309' : '#0369a1',
-                      fontWeight: 700 
-                    }}>
-                      {c.status}
-                    </span>
-                    <button 
-                      type="button"
-                      className="delete-chat-btn" 
-                      onClick={(e) => handleDeleteCase(c.id, e)}
-                      title="Delete Case"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </div>
 
         {/* Chats Section */}
         <div className="sidebar-section">
@@ -622,104 +492,6 @@ const AppSidebar = ({
 
       </div>
 
-      {/* New Case Creation Modal */}
-      {showNewCaseModal && (
-        <div 
-          className="modal-overlay" 
-          onClick={() => setShowNewCaseModal(false)}
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', zIndex: 99999, padding: '1rem'
-          }}
-        >
-          <div 
-            className="modal-card animate-fade-in" 
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '440px',
-              padding: '1.5rem', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', border: '1px solid #e2e8f0'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Briefcase size={20} color="#059669" />
-                <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#0f172a', fontWeight: 700 }}>New Case File</h3>
-              </div>
-              <button 
-                type="button" 
-                onClick={() => setShowNewCaseModal(false)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateCase} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Case Title / Parties *
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Verma vs. State of NCT Delhi" 
-                  required
-                  value={newCaseForm.title}
-                  onChange={e => setNewCaseForm({ ...newCaseForm, title: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem', border: '1.5px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Court / Forum / Jurisdiction
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Delhi High Court / Tis Hazari Sessions" 
-                  value={newCaseForm.forum}
-                  onChange={e => setNewCaseForm({ ...newCaseForm, forum: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem', border: '1.5px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Case Category
-                </label>
-                <select 
-                  value={newCaseForm.type}
-                  onChange={e => setNewCaseForm({ ...newCaseForm, type: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem', border: '1.5px solid #cbd5e1', borderRadius: '8px', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
-                >
-                  <option value="Criminal / Bail">Criminal Appeal & Bail (BNSS / CrPC)</option>
-                  <option value="NI Act 1881">Section 138 Cheque Dishonour</option>
-                  <option value="Civil Recovery">Civil Recovery Suit & Injunction</option>
-                  <option value="Corporate / Contracts">Commercial Contract & Arbitration</option>
-                  <option value="Family / Matrimonial">Matrimonial & Maintenance</option>
-                  <option value="Consumer Forum">Consumer Protection Forum</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '0.75rem' }}>
-                <button 
-                  type="button" 
-                  onClick={() => setShowNewCaseModal(false)}
-                  style={{ padding: '0.6rem 1rem', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', color: '#475569' }}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  style={{ padding: '0.6rem 1.25rem', background: '#059669', border: 'none', borderRadius: '8px', color: '#ffffff', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}
-                >
-                  Save Case File
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
     </aside>
   );
